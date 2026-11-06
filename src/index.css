@@ -1,0 +1,199 @@
+/*
+ * Intentionally almost empty. Bootstrap (imported in App.tsx) is the stylesheet of this application;
+ * the rules the Vite template put here - a fixed-width, centred #root, its own colours and heading
+ * sizes - were for the template's demo page and would fight it.
+ */
+#root {
+  min-height: 100vh;
+}
+
+.authenticated-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.authenticated-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-sidebar {
+  flex: 0 0 15rem;
+  min-height: 20rem;
+  padding: 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  background: var(--bs-body-bg);
+  transition: flex-basis 160ms ease;
+}
+
+.app-sidebar-collapsed {
+  flex-basis: 4.25rem;
+}
+
+.sidebar-heading {
+  min-height: 2.25rem;
+  margin-bottom: 0.75rem;
+  padding-inline: 0.25rem;
+}
+
+.sidebar-toggle {
+  min-width: 2rem;
+  padding-inline: 0.45rem;
+}
+
+.app-sidebar .nav-link {
+  min-height: 2.75rem;
+  white-space: nowrap;
+}
+
+.app-sidebar-collapsed .nav-link {
+  justify-content: center;
+  padding-inline: 0.5rem;
+}
+
+.sidebar-icon {
+  flex: 0 0 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (max-width: 575.98px) {
+  .authenticated-layout {
+    gap: 0.75rem;
+  }
+
+  .app-sidebar {
+    flex-basis: 3.5rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .app-sidebar .sidebar-heading {
+    justify-content: center !important;
+    padding: 0;
+  }
+
+  .app-sidebar .sidebar-heading > span,
+  .app-sidebar .nav-link span {
+    display: none;
+  }
+
+  .app-sidebar .nav-link {
+    justify-content: center;
+    padding-inline: 0.25rem;
+  }
+
+  .app-sidebar .sidebar-toggle {
+    display: none;
+  }
+}
+
+/* An orange button for the step that hands work to somebody else (assigning a distributor). Dark text:
+   white on this orange does not reach a readable contrast. Two classes on purpose: Bootstrap's own
+   stylesheet is imported after this one (App.tsx) and its `.btn` would win a tie. */
+.btn.btn-orange {
+  --bs-btn-color: #000;
+  --bs-btn-bg: #fd7e14;
+  --bs-btn-border-color: #fd7e14;
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: #ff922e;
+  --bs-btn-hover-border-color: #ff8a24;
+  --bs-btn-focus-shadow-rgb: 253, 126, 20;
+  --bs-btn-active-color: #000;
+  --bs-btn-active-bg: #ff9a3d;
+  --bs-btn-active-border-color: #ff8a24;
+  --bs-btn-disabled-color: #000;
+  --bs-btn-disabled-bg: #fd7e14;
+  --bs-btn-disabled-border-color: #fd7e14;
+}
+
+/* A panel that folds open and shut: the row height runs between 0fr and 1fr, which animates where height:auto cannot. */
+.fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+.fold.open {
+  grid-template-rows: 1fr;
+}
+.fold > .fold-inner {
+  overflow: hidden;
+  min-height: 0;
+  visibility: hidden;
+  transition: visibility 0.3s;
+}
+.fold.open > .fold-inner {
+  visibility: visible;
+}
+.chevron {
+  transition: transform 0.3s ease;
+}
+.chevron.up {
+  transform: rotate(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fold, .fold > .fold-inner, .chevron {
+    transition: none;
+  }
+}
+
+/* The grid to choose a container from: a long list scrolls inside, the head stays in view. */
+.container-grid {
+  max-height: 18rem;
+  overflow-y: auto;
+}
+.container-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+/* Two pastel tones Bootstrap has no "subtle" variant for; mixed from its own colours so dark mode follows. */
+.badge-pastel-purple {
+  background-color: color-mix(in srgb, var(--bs-purple) 20%, transparent);
+  color: var(--bs-purple);
+}
+.badge-pastel-orange {
+  background-color: color-mix(in srgb, var(--bs-orange) 22%, transparent);
+  color: var(--bs-orange);
+}
+.badge-pastel-sky {
+  background-color: color-mix(in srgb, #38bdf8 25%, transparent);
+  color: #0284c7;
+}
+
+/* "Complete Order": the one deliberate, final step of an order - a button that looks like it. */
+.btn-complete {
+  --btn-complete-from: #198754;
+  --btn-complete-to: #20c997;
+  color: #fff;
+  border: 0;
+  padding: 0.7rem 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 50rem;
+  background: linear-gradient(135deg, var(--btn-complete-from), var(--btn-complete-to));
+  box-shadow: 0 0.35rem 1rem rgba(25, 135, 84, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.btn-complete:hover,
+.btn-complete:focus-visible {
+  color: #fff;
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 0.6rem 1.4rem rgba(25, 135, 84, 0.45);
+}
+
+.btn-complete:active {
+  transform: translateY(0);
+  box-shadow: 0 0.2rem 0.6rem rgba(25, 135, 84, 0.35);
+}
+
+.btn-complete:disabled {
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}

@@ -1,0 +1,23 @@
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
+import { defineConfig } from 'vite'
+
+// Where the backend runs. Another instance (a second port, say) is `API_TARGET=http://localhost:8099 pnpm dev`.
+const apiTarget = process.env.API_TARGET ?? 'http://localhost:8080'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    babel({ presets: [reactCompilerPreset()] })
+  ],
+  server: {
+    proxy: {
+      // The browser talks to this server only, so the session cookie is the page's own and no CORS
+      // answer is needed. `changeOrigin` stays off on purpose: it would rewrite the Host header to the
+      // backend's, the backend would then see an Origin that differs from its Host, and refuse the
+      // request as cross-origin unless this page's origin were listed in app.cors.allowedOrigins.
+      '/api': { target: apiTarget },
+    },
+  },
+})
