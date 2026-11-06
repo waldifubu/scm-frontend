@@ -1,52 +1,61 @@
-# Supply chain frontend
+# Supply chain management frontend
 
-The React client of the `scm-temporal` backend (a Spring Boot API, `/api/1.0`): orders, picking, packing,
-shipments, stock and the catalogue. React 19, TypeScript, Vite, TanStack Query and Router, Bootstrap 5.3.
+A React single-page application for supply-chain workflows. It connects to the `scm-temporal` Spring Boot backend and provides screens for orders, picking, packing, shipments, inventory, products, and component requests.
 
-## Running it
+## Requirements
 
-```
+- Node.js and [pnpm](https://pnpm.io/)
+- The `scm-temporal` backend, including its `/api/1.0` endpoints
+
+## Getting started
+
+Install dependencies and start the development server:
+
+```sh
 pnpm install
-pnpm dev        # Vite; API_TARGET=http://localhost:8099 proxies /api to another backend
-pnpm test       # Vitest, once
-pnpm lint       # Oxlint
-pnpm build      # tsc -b, then the production bundle in dist/
+pnpm dev
 ```
 
-The session is the backend's `HttpOnly` cookie; every call goes through `src/api/client.ts` with
-`credentials: 'include'`. Nothing here reads a token.
+By default, Vite proxies `/api` requests to `http://localhost:8080`. To use a backend on another address, set `API_TARGET` before starting the server:
 
-## What a role sees
+```sh
+# macOS/Linux
+API_TARGET=http://localhost:8099 pnpm dev
 
-The navigation (`src/navigation.ts`) is built from the roles of `GET /me`. A user who holds one role only is
-kept to its pages: a **carrier** (DISTRIBUTOR) sees *Shipments* and lands there, a **customer** sees *Create order*
-and *Orders* and is sent to *Orders* from any other address (`mayOpen`, checked in the router). With another role
-next to it the pages of that role are theirs too. The backend answers 403 wherever the navigation hides a page, so
-this is convenience, not protection.
+# PowerShell
+$env:API_TARGET = 'http://localhost:8099'
+pnpm dev
+```
 
-| Page | Roles | Notes |
-|------|-------|-------|
-| Orders | customer, manager, warehouse, admin | status filter (default `CREATED`); a customer sees their own |
-| New orders | manager, warehouse, admin | read-only for the warehouse |
-| Picking Orders | warehouse, admin | *To pick* / *Picked*; **Pick**, and **Release** (red, asks first) to take a pick back |
-| Order items, Packable items | manager, warehouse, admin | the product as *name (articleNo)*; the navigation lists them for everybody but the backend admits these three |
-| Packages | warehouse, admin | filter by the fulfillment status of the order line, starts on `PACKED`; **Create container** and **Add to container** (pick an open container by radio, `POST /packing/shipment/{id}/items`) fold open |
-| Containers | warehouse, admin | *Complete container* asks first, the contents are fixed afterwards |
-| Shippable Items | logistics, admin | the containers that are `PACKED` and in no shipment yet, `GET /shipments/packages`, with the customer of each; a click on a row opens `/shippable-items/{id}` with what is in it; tick containers and **Create shipment** (`POST /shipments`, the customer is read off the contents), or **Add to Shipment**: pick one of the CREATED shipments in a grid (those of another customer are greyed out) and **Add** (`POST /shipments/{id}/packages`) |
-| Shipments | logistics, admin, carriers | planners assign a distributor; a carrier accepts, **declines**, sets the tracking number, ships, delivers |
-| Storehouses, Stock | warehouse, admin | *Stock*: the inventory per article (all storehouses added up, `available` 0 in red), the per-storehouse view, **Book** and **Transfer** |
-| Products, Components | everyone | managers edit products |
+Open the local URL printed by Vite. Sign-in is handled by the backend; the frontend expects the backend to set the session cookie. API requests use the same-origin `/api/1.0` path and include credentials.
 
-## How it is put together
+## Available commands
 
-- `src/api/` – one module per backend resource, with the types, the query options and the calls. A paged list
-  answers `{content, total, page, size}`; `pageQuery.ts` adds `page=`.
-- `src/pages/` – the screens. Shared pieces: `Pager` (the buttons under every paged table), `SortableHeader`,
-  `ConfirmModal` (a Bootstrap modal built from its classes, for anything that moves stock or fixes a record),
-  `PageTitle` with the icon of the navigation entry.
-- Rules that can be tested live in plain modules beside the page (`navigation.ts`, `paging.ts`, `stockForms.ts`,
-  `entityLinks.ts`, `format.ts`, `tableSort.ts`) and have a `*.test.ts` next to them.
-- Bootstrap is imported after `index.css`, so an override of a Bootstrap class needs a doubled selector
-  (`.btn.btn-orange`).
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start the Vite development server |
+| `pnpm test` | Run the Vitest suite once |
+| `pnpm test:watch` | Run Vitest in watch mode |
+| `pnpm lint` | Run Oxlint |
+| `pnpm build` | Type-check and create the production bundle in `dist/` |
+| `pnpm preview` | Preview the production bundle locally |
 
-See `AGENTS.md` for the conventions.
+## Features
+
+- Create and track orders, and manage order items.
+- Pick orders, pack items into containers, and prepare shipments.
+- Plan shipments and support carrier shipment and delivery workflows.
+- View storehouses and stock, and book or transfer inventory.
+- Browse products and components, and manage component requests.
+
+Navigation adapts to the signed-in user's roles. The backend remains responsible for authorization; hiding a page in the frontend does not grant or replace access control.
+
+## Project structure
+
+- `src/pages/` contains route-level screens and shared UI.
+- `src/api/` contains typed backend calls and API data shapes; `client.ts` centralizes HTTP behavior.
+- `src/router.tsx` configures routes and authentication guards; `src/navigation.ts` defines role-aware navigation.
+- Focused Vitest tests live beside their subject as `*.test.ts`.
+- `src/assets/` contains bundled assets; `public/` contains static files served as-is.
+
+See [AGENTS.md](AGENTS.md) for development conventions and repository guidance.
