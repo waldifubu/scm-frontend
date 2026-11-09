@@ -9,7 +9,9 @@ import { formatDate, formatMoment, formatNumber } from './format'
  * out - a shipment without a note shows no empty "comment".
  */
 export function deliveryFields(row: DeliveryRow): [label: string, value: string][] {
-  const customer = [row.customerName, row.customerId != null ? `(#${row.customerId})` : null].filter(Boolean).join(' ')
+  const customer = [row.customerName, row.customerId != null ? `(#${row.customerId})` : null]
+    .filter(Boolean)
+    .join(' ')
 
   const fields: [string, string][] = [
     ['customer', customer],

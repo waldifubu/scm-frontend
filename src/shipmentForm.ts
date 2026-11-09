@@ -22,7 +22,9 @@ export function formOf(shipment: ShipmentDetail): ShipmentDataForm {
 
 /** Whether anything was changed against `saved`. Blanks around a text do not count as a change. */
 export function isDirty(form: ShipmentDataForm, saved: ShipmentDataForm): boolean {
-  return (Object.keys(form) as (keyof ShipmentDataForm)[]).some((key) => form[key].trim() !== saved[key].trim())
+  return (Object.keys(form) as (keyof ShipmentDataForm)[]).some(
+    (key) => form[key].trim() !== saved[key].trim(),
+  )
 }
 
 /** What is wrong with the form, or `null`. The backend refuses a shipment without an address, so the form says so first. */
@@ -47,7 +49,10 @@ export function requestOf(form: ShipmentDataForm): UpdateShipmentRequest {
 }
 
 /** What the form of a new shipment holds: the same three fields as the data form, as text. */
-export type NewShipmentForm = Pick<ShipmentDataForm, 'shippingAddress' | 'shippingMethod' | 'requestedDeliveryDate'>
+export type NewShipmentForm = Pick<
+  ShipmentDataForm,
+  'shippingAddress' | 'shippingMethod' | 'requestedDeliveryDate'
+>
 
 /**
  * The request for `POST /shipments` out of the chosen packages and the form: a result with the request, or

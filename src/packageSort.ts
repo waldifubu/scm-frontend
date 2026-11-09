@@ -27,7 +27,9 @@ export type PackageOrder = 'ASC' | 'DESC' | ''
 export function tableSortOf(sort: string, order: PackageOrder): TableSort | null {
   const direction = order === 'DESC' ? 'desc' : 'asc'
   if (sort.trim() === '') return { column: 'createdAt', direction }
-  const column = Object.keys(PACKAGE_SORT_KEYS).find((name) => PACKAGE_SORT_KEYS[name] === sort.trim())
+  const column = Object.keys(PACKAGE_SORT_KEYS).find(
+    (name) => PACKAGE_SORT_KEYS[name] === sort.trim(),
+  )
   if (column === undefined) return null
   return { column, direction }
 }

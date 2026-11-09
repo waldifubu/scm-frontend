@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import type { ShipmentDetail } from './api/shipments'
-import { formError, formOf, isDirty, newShipmentRequest, requestOf, type ShipmentDataForm } from './shipmentForm'
+import {
+  formError,
+  formOf,
+  isDirty,
+  newShipmentRequest,
+  requestOf,
+  type ShipmentDataForm,
+} from './shipmentForm'
 
 const shipment = (extra: Partial<ShipmentDetail> = {}): ShipmentDetail => ({
   id: 2,
@@ -23,17 +30,39 @@ const form = (extra: Partial<ShipmentDataForm> = {}): ShipmentDataForm => ({
 describe('formOf', () => {
   it('takes the four fields of the shipment', () => {
     expect(
-      formOf(shipment({ shippingAddress: 'Hafenweg 4', shippingMethod: 'DHL', requestedDeliveryDate: '2026-11-02', comment: 'x' })),
-    ).toEqual({ shippingAddress: 'Hafenweg 4', shippingMethod: 'DHL', requestedDeliveryDate: '2026-11-02', comment: 'x' })
+      formOf(
+        shipment({
+          shippingAddress: 'Hafenweg 4',
+          shippingMethod: 'DHL',
+          requestedDeliveryDate: '2026-11-02',
+          comment: 'x',
+        }),
+      ),
+    ).toEqual({
+      shippingAddress: 'Hafenweg 4',
+      shippingMethod: 'DHL',
+      requestedDeliveryDate: '2026-11-02',
+      comment: 'x',
+    })
   })
 
   it('makes an empty input of what the shipment does not have', () => {
-    expect(formOf(shipment())).toEqual({ shippingAddress: '', shippingMethod: '', requestedDeliveryDate: '', comment: '' })
-    expect(formOf(shipment({ shippingMethod: null, comment: null }))).toMatchObject({ shippingMethod: '', comment: '' })
+    expect(formOf(shipment())).toEqual({
+      shippingAddress: '',
+      shippingMethod: '',
+      requestedDeliveryDate: '',
+      comment: '',
+    })
+    expect(formOf(shipment({ shippingMethod: null, comment: null }))).toMatchObject({
+      shippingMethod: '',
+      comment: '',
+    })
   })
 
   it('cuts a date that came with a time back to the date an input can hold', () => {
-    expect(formOf(shipment({ requestedDeliveryDate: '2026-11-02T00:00:00' })).requestedDeliveryDate).toBe('2026-11-02')
+    expect(
+      formOf(shipment({ requestedDeliveryDate: '2026-11-02T00:00:00' })).requestedDeliveryDate,
+    ).toBe('2026-11-02')
   })
 })
 
@@ -59,7 +88,9 @@ describe('formError', () => {
 
   it('has nothing to say about a form that can be sent, however empty the rest is', () => {
     expect(formError(form())).toBeNull()
-    expect(formError(form({ shippingMethod: '', requestedDeliveryDate: '', comment: '' }))).toBeNull()
+    expect(
+      formError(form({ shippingMethod: '', requestedDeliveryDate: '', comment: '' })),
+    ).toBeNull()
   })
 })
 
@@ -74,10 +105,22 @@ describe('requestOf', () => {
   })
 
   it('sends an empty input as null, not as an empty text - and still sends the key', () => {
-    const request = requestOf(form({ shippingMethod: '  ', requestedDeliveryDate: '', comment: '' }))
+    const request = requestOf(
+      form({ shippingMethod: '  ', requestedDeliveryDate: '', comment: '' }),
+    )
 
-    expect(request).toEqual({ shippingAddress: 'Hafenweg 4, Hamburg', shippingMethod: null, requestedDeliveryDate: null, comment: null })
-    expect(Object.keys(request)).toEqual(['shippingAddress', 'shippingMethod', 'requestedDeliveryDate', 'comment'])
+    expect(request).toEqual({
+      shippingAddress: 'Hafenweg 4, Hamburg',
+      shippingMethod: null,
+      requestedDeliveryDate: null,
+      comment: null,
+    })
+    expect(Object.keys(request)).toEqual([
+      'shippingAddress',
+      'shippingMethod',
+      'requestedDeliveryDate',
+      'comment',
+    ])
   })
 
   it('sends the date of the shipment back when nothing about it was touched, so a save does not wipe it', () => {
@@ -88,17 +131,37 @@ describe('requestOf', () => {
 })
 
 describe('newShipmentRequest', () => {
-  const form = { shippingAddress: ' Musterstr. 1, Berlin ', shippingMethod: 'DHL', requestedDeliveryDate: '2026-11-03' }
+  const form = {
+    shippingAddress: ' Musterstr. 1, Berlin ',
+    shippingMethod: 'DHL',
+    requestedDeliveryDate: '2026-11-03',
+  }
 
   it('turns the chosen containers and the form into the request, blanks trimmed', () => {
     expect(newShipmentRequest([5, 7], form)).toEqual({
-      request: { shipmentPackageIds: [5, 7], shippingAddress: 'Musterstr. 1, Berlin', shippingMethod: 'DHL', requestedDeliveryDate: '2026-11-03' },
+      request: {
+        shipmentPackageIds: [5, 7],
+        shippingAddress: 'Musterstr. 1, Berlin',
+        shippingMethod: 'DHL',
+        requestedDeliveryDate: '2026-11-03',
+      },
     })
   })
 
   it('sends an empty field as null - the address and the rest are optional here', () => {
-    expect(newShipmentRequest([5], { shippingAddress: '  ', shippingMethod: '', requestedDeliveryDate: '' })).toEqual({
-      request: { shipmentPackageIds: [5], shippingAddress: null, shippingMethod: null, requestedDeliveryDate: null },
+    expect(
+      newShipmentRequest([5], {
+        shippingAddress: '  ',
+        shippingMethod: '',
+        requestedDeliveryDate: '',
+      }),
+    ).toEqual({
+      request: {
+        shipmentPackageIds: [5],
+        shippingAddress: null,
+        shippingMethod: null,
+        requestedDeliveryDate: null,
+      },
     })
   })
 

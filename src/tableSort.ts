@@ -33,7 +33,10 @@ function compareValues(a: unknown, b: unknown): number {
  * that column goes last whichever way the sort runs - an empty cell is not the smallest or the largest
  * value, it is no value. Rows that compare equal keep the order they had.
  */
-export function sortRows<T extends Record<string, unknown>>(rows: readonly T[], sort: TableSort | null): T[] {
+export function sortRows<T extends Record<string, unknown>>(
+  rows: readonly T[],
+  sort: TableSort | null,
+): T[] {
   if (sort === null) return [...rows]
 
   const sign = sort.direction === 'asc' ? 1 : -1

@@ -3,9 +3,16 @@ import { useState, type CSSProperties } from 'react'
 import { Link, Outlet } from '@tanstack/react-router'
 import { SHIPMENT_PACKAGE_TYPES, shipmentPackagesQueryOptions } from '../api/shipmentPackages'
 import { containerChoices, containerFits } from '../containerChoices'
-import { formatCubicMeters, formatNumber } from '../format'
+import { formatCubicMeters, formatNumber, cell } from '../format'
 import { ORDER_ITEM_STATUSES } from '../api/orderItems'
-import { addItemsToContainer, createShipmentPackage, DEFAULT_PACKAGE_STATUS, lonelyPackagesQueryOptions, packagesQueryOptions, type PackageFilter } from '../api/packages'
+import {
+  addItemsToContainer,
+  createShipmentPackage,
+  DEFAULT_PACKAGE_STATUS,
+  lonelyPackagesQueryOptions,
+  packagesQueryOptions,
+  type PackageFilter,
+} from '../api/packages'
 import { entityLinkOf } from '../entityLinks'
 import { PACKAGE_SORT_KEYS, sortStateOf, tableSortOf } from '../packageSort'
 import { groupByOrder } from '../packageGrouping'
@@ -16,11 +23,6 @@ import { Chevron } from './Chevron'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
 import { SortableHeader } from './SortableHeader'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
 
 const HIDDEN_COLUMNS = new Set(['sku', 'runNo'])
 
@@ -56,8 +58,12 @@ function PackagesTable({
   const items = grouped ? groupByOrder(data.content) : data.content
   if (items.length === 0) return <p className="p-3 mb-0 text-body-secondary">No packages.</p>
 
-  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter((c) => !HIDDEN_COLUMNS.has(c))
-  const colors = groupColors(items.map((item) => item.orderNo as string | number | null | undefined))
+  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
+    (c) => !HIDDEN_COLUMNS.has(c),
+  )
+  const colors = groupColors(
+    items.map((item) => item.orderNo as string | number | null | undefined),
+  )
 
   return (
     <>
@@ -69,7 +75,13 @@ function PackagesTable({
               <th />
               {columns.map((column) =>
                 onSort && PACKAGE_SORT_KEYS[column] !== undefined ? (
-                  <SortableHeader key={column} label={column} column={column} sort={sort ?? null} onSort={onSort} />
+                  <SortableHeader
+                    key={column}
+                    label={column}
+                    column={column}
+                    sort={sort ?? null}
+                    onSort={onSort}
+                  />
                 ) : (
                   <th key={column}>{column}</th>
                 ),
@@ -81,7 +93,9 @@ function PackagesTable({
               <tr
                 key={cell(item.id) || index}
                 // Bootstrap paints a cell from --bs-table-bg; set on the row it reaches every cell of it.
-                style={colors[index] ? ({ '--bs-table-bg': colors[index] } as CSSProperties) : undefined}
+                style={
+                  colors[index] ? ({ '--bs-table-bg': colors[index] } as CSSProperties) : undefined
+                }
               >
                 <td>
                   <input
@@ -100,7 +114,11 @@ function PackagesTable({
                       {link ? (
                         <EntityLinkAnchor link={link} />
                       ) : (
-                        <Link to="/packages/$packageId" params={{ packageId: cell(item.id) }} className="text-decoration-none text-reset">
+                        <Link
+                          to="/packages/$packageId"
+                          params={{ packageId: cell(item.id) }}
+                          className="text-decoration-none text-reset"
+                        >
                           {cell(item[column])}
                         </Link>
                       )}
@@ -151,7 +169,9 @@ export function PackagesPage() {
   const [height, setHeight] = useState('')
   const toggle = (id: string, orderNo: string) => {
     setOrderOf((current) => ({ ...current, [id]: orderNo }))
-    setSelected((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]))
+    setSelected((current) =>
+      current.includes(id) ? current.filter((value) => value !== id) : [...current, id],
+    )
   }
   const chosenOrders = selected.map((id) => orderOf[id] ?? '')
   const [notice, setNotice] = useState<{ text: string; failed: boolean } | null>(null)
@@ -171,7 +191,9 @@ export function PackagesPage() {
   })
   const choices = containerChoices(openContainers.data?.content ?? [])
   // A container chosen before the items changed may no longer fit them.
-  const chosenFits = choices.some((choice) => choice.id === containerId && containerFits(choice, chosenOrders))
+  const chosenFits = choices.some(
+    (choice) => choice.id === containerId && containerFits(choice, chosenOrders),
+  )
   const mixedOrders = new Set(chosenOrders.filter((orderNo) => orderNo !== '')).size > 1
   const add = useMutation({
     mutationFn: ({ id, items }: { id: number; items: number[] }) => addItemsToContainer(id, items),
@@ -212,7 +234,9 @@ export function PackagesPage() {
     <>
       <div className="card shadow-sm">
         <div className="card-body d-flex flex-wrap gap-2 align-items-center">
-          <PageTitle icon="packages" className="me-auto">Packages</PageTitle>
+          <PageTitle icon="packages" className="me-auto">
+            Packages
+          </PageTitle>
           <select
             className="form-select form-select-sm w-auto"
             aria-label="Fulfillment status"
@@ -293,7 +317,13 @@ export function PackagesPage() {
           <div className="card-body">
             <h2 className="h5 mb-0">Lonely packages</h2>
           </div>
-          <PackagesTable options={lonelyPackagesQueryOptions(lonelyPage, status || undefined)} selected={selected} onToggle={toggle} onPage={setLonelyPage} grouped />
+          <PackagesTable
+            options={lonelyPackagesQueryOptions(lonelyPage, status || undefined)}
+            selected={selected}
+            onToggle={toggle}
+            onPage={setLonelyPage}
+            grouped
+          />
         </div>
       )}
       <Outlet />
@@ -333,21 +363,37 @@ export function PackagesPage() {
             onSubmit={(event) => {
               event.preventDefault()
               setAddNotice(null)
-              if (containerId !== null && chosenFits) add.mutate({ id: containerId, items: selected.map(Number) })
+              if (containerId !== null && chosenFits)
+                add.mutate({ id: containerId, items: selected.map(Number) })
             }}
           >
             <div className="card-body d-flex flex-column gap-2">
-              <label className="form-label mb-0" htmlFor="add-items">Selected package items</label>
-              <input id="add-items" className="form-control form-control-sm" readOnly value={selected.join(', ')} />
+              <label className="form-label mb-0" htmlFor="add-items">
+                Selected package items
+              </label>
+              <input
+                id="add-items"
+                className="form-control form-control-sm"
+                readOnly
+                value={selected.join(', ')}
+              />
               <fieldset className="mt-2">
                 <legend className="form-label fs-6 mb-1">Container</legend>
                 {mixedOrders && (
-                  <p className="small text-warning-emphasis mb-1">The chosen items belong to different orders; no container takes them together.</p>
+                  <p className="small text-warning-emphasis mb-1">
+                    The chosen items belong to different orders; no container takes them together.
+                  </p>
                 )}
-                {showAdd && openContainers.isPending && <p className="mb-0 text-body-secondary">Loading containers…</p>}
-                {openContainers.error && <p className="mb-0 text-danger">{openContainers.error.message}</p>}
+                {showAdd && openContainers.isPending && (
+                  <p className="mb-0 text-body-secondary">Loading containers…</p>
+                )}
+                {openContainers.error && (
+                  <p className="mb-0 text-danger">{openContainers.error.message}</p>
+                )}
                 {openContainers.data && choices.length === 0 && (
-                  <p className="mb-0 text-body-secondary">There is no open container. Create one first.</p>
+                  <p className="mb-0 text-body-secondary">
+                    There is no open container. Create one first.
+                  </p>
                 )}
                 {choices.length > 0 && (
                   <div className="container-grid table-responsive border rounded">
@@ -359,9 +405,15 @@ export function PackagesPage() {
                           <th scope="col">packageNumber</th>
                           <th scope="col">type</th>
                           <th scope="col">orderNo</th>
-                          <th scope="col" className="text-end">packages</th>
-                          <th scope="col" className="text-end">weight (kg)</th>
-                          <th scope="col" className="text-end">volume (m³)</th>
+                          <th scope="col" className="text-end">
+                            packages
+                          </th>
+                          <th scope="col" className="text-end">
+                            weight (kg)
+                          </th>
+                          <th scope="col" className="text-end">
+                            volume (m³)
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -372,9 +424,19 @@ export function PackagesPage() {
                             // A click anywhere on the row chooses it, like on the radio itself.
                             <tr
                               key={choice.id}
-                              className={chosen ? 'table-active' : fits ? undefined : 'text-body-secondary'}
-                              style={fits ? { cursor: 'pointer' } : { cursor: 'not-allowed', opacity: 0.5 }}
-                              title={fits ? undefined : `Holds items of order ${choice.orderNo}; the chosen items belong to another order.`}
+                              className={
+                                chosen ? 'table-active' : fits ? undefined : 'text-body-secondary'
+                              }
+                              style={
+                                fits
+                                  ? { cursor: 'pointer' }
+                                  : { cursor: 'not-allowed', opacity: 0.5 }
+                              }
+                              title={
+                                fits
+                                  ? undefined
+                                  : `Holds items of order ${choice.orderNo}; the chosen items belong to another order.`
+                              }
                               onClick={() => fits && setContainerId(choice.id)}
                             >
                               <td className="text-center">
@@ -391,11 +453,25 @@ export function PackagesPage() {
                               <td className={chosen ? 'fw-semibold' : undefined}>{choice.id}</td>
                               <td>{choice.packageNumber}</td>
                               <td>
-                                {choice.type && <span className="badge text-bg-secondary fw-normal">{choice.type}</span>}
+                                {choice.type && (
+                                  <span className="badge text-bg-secondary fw-normal">
+                                    {choice.type}
+                                  </span>
+                                )}
                               </td>
-                              <td>{choice.orderNo || <span className="text-body-secondary">empty</span>}</td>
+                              <td>
+                                {choice.orderNo || (
+                                  <span className="text-body-secondary">empty</span>
+                                )}
+                              </td>
                               <td className="text-end">
-                                <span className={choice.packages === 0 ? 'badge text-bg-light border' : 'badge text-bg-primary'}>
+                                <span
+                                  className={
+                                    choice.packages === 0
+                                      ? 'badge text-bg-light border'
+                                      : 'badge text-bg-primary'
+                                  }
+                                >
                                   {choice.packages}
                                 </span>
                               </td>
@@ -412,65 +488,128 @@ export function PackagesPage() {
               <button
                 type="submit"
                 className="btn btn-success align-self-start mt-2"
-                disabled={add.isPending || selected.length === 0 || containerId === null || !chosenFits}
+                disabled={
+                  add.isPending || selected.length === 0 || containerId === null || !chosenFits
+                }
               >
                 Add
               </button>
             </div>
             <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
-              {addNotice && <span className={addNotice.failed ? 'text-danger' : 'text-success'}>{addNotice.text}</span>}
+              {addNotice && (
+                <span className={addNotice.failed ? 'text-danger' : 'text-success'}>
+                  {addNotice.text}
+                </span>
+              )}
             </div>
           </form>
         </div>
       </div>
       <div className={showForm ? 'fold open' : 'fold'}>
         <div className="fold-inner">
-        <form
-          id="create-container-form"
-          className="card shadow-sm mt-2"
-          onSubmit={(event) => {
-            event.preventDefault()
-            setNotice(null)
-            const num = (value: string) => (value.trim() === '' ? null : Number(value))
-            create.mutate({
-              shipmentPackageType: packageType,
-              packageItems: selected.map(Number),
-              packageNumber: packageNumber.trim() || null,
-              length: num(length),
-              width: num(width),
-              height: num(height),
-            })
-          }}
-        >
-          <div className="card-body d-flex flex-column gap-2">
-            <label className="form-label mb-0" htmlFor="shipment-items">Selected package items</label>
-            <input id="shipment-items" className="form-control form-control-sm" readOnly value={selected.join(', ')} />
-            <label className="form-label mb-0" htmlFor="shipment-type">packageType</label>
-            <select id="shipment-type" className="form-select form-select-sm" value={packageType} onChange={(e) => setPackageType(e.target.value)}>
-              {SHIPMENT_PACKAGE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-            <label className="form-label mb-0" htmlFor="shipment-number">packageNumber</label>
-            <input id="shipment-number" className="form-control form-control-sm" value={packageNumber} onChange={(e) => setPackageNumber(e.target.value)} />
-            <label className="form-label mb-0" htmlFor="shipment-length">length</label>
-            <input id="shipment-length" type="number" min={0} step="any" className="form-control form-control-sm" value={length} onChange={(e) => setLength(e.target.value)} />
-            <label className="form-label mb-0" htmlFor="shipment-width">width</label>
-            <input id="shipment-width" type="number" min={0} step="any" className="form-control form-control-sm" value={width} onChange={(e) => setWidth(e.target.value)} />
-            <label className="form-label mb-0" htmlFor="shipment-height">height</label>
-            <input id="shipment-height" type="number" min={0} step="any" className="form-control form-control-sm" value={height} onChange={(e) => setHeight(e.target.value)} />
-            <button type="submit" className="btn btn-success align-self-start mt-2" disabled={create.isPending || selected.length === 0}>
-              Create
-            </button>
-          </div>
-          <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
-            {notice && (
-              <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>
-            )}
-          </div>
-        </form>
+          <form
+            id="create-container-form"
+            className="card shadow-sm mt-2"
+            onSubmit={(event) => {
+              event.preventDefault()
+              setNotice(null)
+              const num = (value: string) => (value.trim() === '' ? null : Number(value))
+              create.mutate({
+                shipmentPackageType: packageType,
+                packageItems: selected.map(Number),
+                packageNumber: packageNumber.trim() || null,
+                length: num(length),
+                width: num(width),
+                height: num(height),
+              })
+            }}
+          >
+            <div className="card-body d-flex flex-column gap-2">
+              <label className="form-label mb-0" htmlFor="shipment-items">
+                Selected package items
+              </label>
+              <input
+                id="shipment-items"
+                className="form-control form-control-sm"
+                readOnly
+                value={selected.join(', ')}
+              />
+              <label className="form-label mb-0" htmlFor="shipment-type">
+                packageType
+              </label>
+              <select
+                id="shipment-type"
+                className="form-select form-select-sm"
+                value={packageType}
+                onChange={(e) => setPackageType(e.target.value)}
+              >
+                {SHIPMENT_PACKAGE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+              <label className="form-label mb-0" htmlFor="shipment-number">
+                packageNumber
+              </label>
+              <input
+                id="shipment-number"
+                className="form-control form-control-sm"
+                value={packageNumber}
+                onChange={(e) => setPackageNumber(e.target.value)}
+              />
+              <label className="form-label mb-0" htmlFor="shipment-length">
+                length
+              </label>
+              <input
+                id="shipment-length"
+                type="number"
+                min={0}
+                step="any"
+                className="form-control form-control-sm"
+                value={length}
+                onChange={(e) => setLength(e.target.value)}
+              />
+              <label className="form-label mb-0" htmlFor="shipment-width">
+                width
+              </label>
+              <input
+                id="shipment-width"
+                type="number"
+                min={0}
+                step="any"
+                className="form-control form-control-sm"
+                value={width}
+                onChange={(e) => setWidth(e.target.value)}
+              />
+              <label className="form-label mb-0" htmlFor="shipment-height">
+                height
+              </label>
+              <input
+                id="shipment-height"
+                type="number"
+                min={0}
+                step="any"
+                className="form-control form-control-sm"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="btn btn-success align-self-start mt-2"
+                disabled={create.isPending || selected.length === 0}
+              >
+                Create
+              </button>
+            </div>
+            <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
+              {notice && (
+                <span className={notice.failed ? 'text-danger' : 'text-success'}>
+                  {notice.text}
+                </span>
+              )}
+            </div>
+          </form>
         </div>
       </div>
     </>

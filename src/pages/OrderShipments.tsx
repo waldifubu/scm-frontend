@@ -23,7 +23,9 @@ export function OrderShipments({ orderNumber }: { orderNumber: string }) {
       <h4 className="h6 mt-4">Shipments</h4>
       {isPending && <p className="mb-0">Loading shipments…</p>}
       {error && <p className="mb-0 text-danger">{error.message}</p>}
-      {shipments && shipments.length === 0 && <p className="text-body-secondary mb-0">No shipment yet.</p>}
+      {shipments && shipments.length === 0 && (
+        <p className="text-body-secondary mb-0">No shipment yet.</p>
+      )}
       {shipments && shipments.length > 0 && (
         <div className="table-responsive">
           <table className="table table-sm mb-0">
@@ -44,7 +46,10 @@ export function OrderShipments({ orderNumber }: { orderNumber: string }) {
                 <tr key={shipment.id}>
                   <td>
                     {opensShipment ? (
-                      <Link to="/shipments/$shipmentId" params={{ shipmentId: String(shipment.id) }}>
+                      <Link
+                        to="/shipments/$shipmentId"
+                        params={{ shipmentId: String(shipment.id) }}
+                      >
                         {shipment.id}
                       </Link>
                     ) : (
@@ -52,7 +57,9 @@ export function OrderShipments({ orderNumber }: { orderNumber: string }) {
                     )}
                   </td>
                   <td>
-                    <span className={`badge ${statusBadgeClass(shipment.status)}`}>{shipment.status}</span>
+                    <span className={`badge ${statusBadgeClass(shipment.status)}`}>
+                      {shipment.status}
+                    </span>
                   </td>
                   <td>{shipment.packageNumbers.join(', ')}</td>
                   <td>{shipment.trackingNumber ?? ''}</td>

@@ -18,7 +18,15 @@ interface Props {
  * click on the dimmed area cancel, like in any dialog. Built from the Bootstrap classes alone, as the
  * distributor window is - no script of Bootstrap's own is loaded.
  */
-export function ConfirmModal({ title, children, confirmLabel, danger = false, busy = false, onConfirm, onCancel }: Props) {
+export function ConfirmModal({
+  title,
+  children,
+  confirmLabel,
+  danger = false,
+  busy = false,
+  onConfirm,
+  onCancel,
+}: Props) {
   const titleId = useId()
 
   useEffect(() => {
@@ -47,14 +55,31 @@ export function ConfirmModal({ title, children, confirmLabel, danger = false, bu
               <h2 className="modal-title h5" id={titleId}>
                 {title}
               </h2>
-              <button type="button" className="btn-close" aria-label="Close" onClick={onCancel} disabled={busy} />
+              <button
+                type="button"
+                className="btn-close"
+                aria-label="Close"
+                onClick={onCancel}
+                disabled={busy}
+              />
             </div>
             <div className="modal-body">{children}</div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-outline-secondary" onClick={onCancel} disabled={busy}>
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={onCancel}
+                disabled={busy}
+              >
                 Cancel
               </button>
-              <button type="button" className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={onConfirm} disabled={busy} autoFocus>
+              <button
+                type="button"
+                className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`}
+                onClick={onConfirm}
+                disabled={busy}
+                autoFocus
+              >
                 {confirmLabel}
               </button>
             </div>

@@ -22,7 +22,8 @@ export const queryClient: QueryClient = new QueryClient({
     queries: {
       // A 4xx will answer the same the second time. A dropped connection or a 5xx is worth one more.
       retry: (failureCount, error) =>
-        failureCount < 1 && !(error instanceof ApiError && error.status >= 400 && error.status < 500),
+        failureCount < 1 &&
+        !(error instanceof ApiError && error.status >= 400 && error.status < 500),
     },
   },
 })

@@ -1,11 +1,14 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { ALL_STATUSES, fetchOrderItems } from './orderItems'
 
 afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const answer = () => vi.fn().mockResolvedValue(new Response('{"content":[],"total":0,"page":0,"size":25}', { status: 200 }))
+const answer = () =>
+  vi
+    .fn()
+    .mockResolvedValue(new Response('{"content":[],"total":0,"page":0,"size":25}', { status: 200 }))
 
 describe('fetchOrderItems', () => {
   it('asks for every status with status=ALL', async () => {

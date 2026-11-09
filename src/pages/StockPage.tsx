@@ -12,13 +12,9 @@ import { SkuAutocomplete } from './SkuAutocomplete'
 import { SortableHeader } from './SortableHeader'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
+import { cell } from '../format'
 
 const route = getRouteApi('/authed/stock/storehouse/$storehouseId')
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
 
 const HIDDEN_COLUMNS = new Set(['storehouseId', 'storehouseName'])
 
@@ -42,7 +38,9 @@ function StockTable({
   onSort: (column: string) => void
   onPage: (page: number) => void
 }) {
-  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter((c) => !HIDDEN_COLUMNS.has(c))
+  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
+    (c) => !HIDDEN_COLUMNS.has(c),
+  )
 
   return (
     <>
@@ -51,7 +49,13 @@ function StockTable({
           <thead>
             <tr>
               {columns.map((column) => (
-                <SortableHeader key={column} label={column} column={column} sort={sort} onSort={onSort} />
+                <SortableHeader
+                  key={column}
+                  label={column}
+                  column={column}
+                  sort={sort}
+                  onSort={onSort}
+                />
               ))}
             </tr>
           </thead>
@@ -59,10 +63,19 @@ function StockTable({
             {items.map((item, index) => (
               <tr key={cell(item.id) || index}>
                 {columns.map((column) => (
-                  <td key={column} className={column === 'available' && typeof item[column] === 'number' && isSoldOut(item[column]) ? 'text-danger' : undefined}>
+                  <td
+                    key={column}
+                    className={
+                      column === 'available' &&
+                      typeof item[column] === 'number' &&
+                      isSoldOut(item[column])
+                        ? 'text-danger'
+                        : undefined
+                    }
+                  >
                     {column === 'sku' && item.sku != null ? (
                       <small>
-                        <Link to="/products/sku/$sku" params={{ sku: String(item.sku) }}>
+                        <Link to="/products/sku/$sku" params={{ sku: cell(item.sku) }}>
                           {cell(item.sku)}
                         </Link>
                       </small>
@@ -121,13 +134,14 @@ function StockView({ storehouseId }: { storehouseId: string }) {
 
   const names = new Map<string, string>()
   for (const product of products?.content ?? []) {
-    if (typeof product.sku === 'string' && typeof product.name === 'string') names.set(product.sku, product.name)
+    if (typeof product.sku === 'string' && typeof product.name === 'string')
+      names.set(product.sku, product.name)
   }
 
   const items = data?.content ?? []
   const visible = sortRows(filterBySku(items, sku), sort)
   const name = items.map((item) => item.storehouseName).find((value) => value != null)
-  const title = name ? String(name) : `storehouse ${storehouseId}`
+  const title = name ? cell(name) : `storehouse ${storehouseId}`
 
   return (
     <>

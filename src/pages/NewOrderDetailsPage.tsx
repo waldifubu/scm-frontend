@@ -2,16 +2,16 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { orderQueryOptions, type OrderDto } from '../api/orders'
 import { OrderLinesTable } from './OrderLinesTable'
+import { cell } from '../format'
 
 const route = getRouteApi('/authed/orders/new/$orderNumber')
 
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
-
 function isRowList(value: unknown): value is OrderDto[] {
-  return Array.isArray(value) && value.length > 0 && value.every((row) => typeof row === 'object' && row !== null)
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((row) => typeof row === 'object' && row !== null)
+  )
 }
 
 /**

@@ -133,7 +133,9 @@
   transform: rotate(180deg);
 }
 @media (prefers-reduced-motion: reduce) {
-  .fold, .fold > .fold-inner, .chevron {
+  .fold,
+  .fold > .fold-inner,
+  .chevron {
     transition: none;
   }
 }
@@ -176,7 +178,10 @@
   border-radius: 50rem;
   background: linear-gradient(135deg, var(--btn-complete-from), var(--btn-complete-to));
   box-shadow: 0 0.35rem 1rem rgba(25, 135, 84, 0.35);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
 }
 
 .btn-complete:hover,

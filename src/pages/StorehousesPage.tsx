@@ -6,11 +6,7 @@ import { storehousesQueryOptions } from '../api/storehouses'
 import { hasRole } from '../api/types'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
+import { cell } from '../format'
 
 function StorehousesTable({ page, onPage }: { page: number; onPage: (page: number) => void }) {
   const { data, isPending, error } = useQuery(storehousesQueryOptions(page))
@@ -41,7 +37,7 @@ function StorehousesTable({ page, onPage }: { page: number; onPage: (page: numbe
                     {item.id != null ? (
                       <Link
                         to="/stock/storehouse/$storehouseId"
-                        params={{ storehouseId: String(item.id) }}
+                        params={{ storehouseId: cell(item.id) }}
                         className="text-decoration-none text-reset"
                       >
                         {cell(item[column])}

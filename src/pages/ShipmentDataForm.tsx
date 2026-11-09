@@ -2,7 +2,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
 import { canEditShipmentData, updateShipment, type ShipmentDetail } from '../api/shipments'
 import { formatMoment } from '../format'
-import { formError, formOf, isDirty, requestOf, type ShipmentDataForm as Form } from '../shipmentForm'
+import {
+  formError,
+  formOf,
+  isDirty,
+  requestOf,
+  type ShipmentDataForm as Form,
+} from '../shipmentForm'
 
 /**
  * The shipment's own data as text fields: address, method, requested delivery date, comment - and when it
@@ -54,7 +60,8 @@ export function ShipmentDataForm({
       <h4 className="h6">edit data</h4>
       {!editable && (
         <p className="text-body-secondary small">
-          A shipment in {shipment.status} can no longer be changed - its data can be edited up to ACCEPTED.
+          A shipment in {shipment.status} can no longer be changed - its data can be edited up to
+          ACCEPTED.
         </p>
       )}
       <div className="row g-3">
@@ -126,7 +133,11 @@ export function ShipmentDataForm({
       </div>
       {editable && (
         <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
-          <button type="submit" className="btn btn-primary" disabled={!dirty || !!problem || save.isPending}>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={!dirty || !!problem || save.isPending}
+          >
             {save.isPending ? 'Saving…' : 'Save'}
           </button>
           <button

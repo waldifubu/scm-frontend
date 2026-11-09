@@ -1,9 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { createPackage, packableItemsQueryOptions, type PackableItemFilter, type PackingLine } from '../api/orderItems'
+import {
+  createPackage,
+  packableItemsQueryOptions,
+  type PackableItemFilter,
+  type PackingLine,
+} from '../api/orderItems'
 import { ordersQueryOptions } from '../api/orders'
 import { OrderItemsTable } from './OrderItemsTable'
 import { PageTitle } from './PageTitle'
+import { cell } from '../format'
 
 /** The order number of an order or of an item, whether it sits on the item itself or on a nested `order`. */
 function orderNoOf(row: Record<string, unknown>): string | undefined {
@@ -23,11 +29,13 @@ export function PackableItemsPage() {
 
   const { data: orders } = useQuery(ordersQueryOptions())
   const { data: allPackable } = useQuery(packableItemsQueryOptions({ sort: 'id' }))
-  const orderNumbers = [...new Set(
-    [...(orders?.content ?? []), ...(allPackable?.content ?? [])]
-      .map(orderNoOf)
-      .filter((number): number is string => number !== undefined),
-  )].sort()
+  const orderNumbers = [
+    ...new Set(
+      [...(orders?.content ?? []), ...(allPackable?.content ?? [])]
+        .map(orderNoOf)
+        .filter((number): number is string => number !== undefined),
+    ),
+  ].sort()
 
   const filter: PackableItemFilter = {
     orderNo: orderNo.trim() || undefined,
@@ -59,7 +67,9 @@ export function PackableItemsPage() {
     <div className="card shadow-sm">
       <div className="card-body">
         <div className="d-flex flex-wrap gap-2 align-items-center">
-          <PageTitle icon="packable-items" className="me-auto">Packable Items</PageTitle>
+          <PageTitle icon="packable-items" className="me-auto">
+            Packable Items
+          </PageTitle>
           <input
             className="form-control form-control-sm w-auto"
             aria-label="Order number"
@@ -116,7 +126,7 @@ export function PackableItemsPage() {
           render: (item) => {
             const rawId = item.orderItemId ?? item.id
             if (rawId === undefined || rawId === null) return null
-            const id = String(rawId)
+            const id = cell(rawId)
             const remaining = Number(item.remaining)
             return (
               <input
@@ -144,7 +154,9 @@ export function PackableItemsPage() {
           create package
         </button>
         <span
-          className={packageNotice ? (packageNotice.failed ? 'text-danger' : 'text-success') : undefined}
+          className={
+            packageNotice ? (packageNotice.failed ? 'text-danger' : 'text-success') : undefined
+          }
           style={{ minHeight: '1.5rem' }}
           role="status"
         >

@@ -46,7 +46,7 @@ export function AuthedLayout() {
         <div className="container">
           <span className="navbar-brand mb-0 h1">
             <Link to="/" className="nav-link">
-            Supply Chain Management
+              Supply Chain Management
             </Link>
           </span>
           {user && (

@@ -1,6 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useId, useState } from 'react'
-import { setTrackingNumber, TRACKING_NUMBER_MAX_LENGTH, trackingNumberError, type DeliveryRow } from '../api/shipments'
+import {
+  setTrackingNumber,
+  TRACKING_NUMBER_MAX_LENGTH,
+  trackingNumberError,
+  type DeliveryRow,
+} from '../api/shipments'
 
 /**
  * The carrier's own reference for the shipment, in one line: the label "Tracking number", the text field with
@@ -8,7 +13,13 @@ import { setTrackingNumber, TRACKING_NUMBER_MAX_LENGTH, trackingNumberError, typ
  * has, so a longer number is stopped here and not answered with a 400.
  * Saving is `PATCH /shipments/{id}/trackingnumber`; the field starts with the number the shipment has.
  */
-export function TrackingNumberForm({ row, onSaved }: { row: DeliveryRow; onSaved: (message: string) => void }) {
+export function TrackingNumberForm({
+  row,
+  onSaved,
+}: {
+  row: DeliveryRow
+  onSaved: (message: string) => void
+}) {
   const fieldId = useId()
   const queryClient = useQueryClient()
   const saved = row.trackingNumber ?? ''
@@ -38,7 +49,10 @@ export function TrackingNumberForm({ row, onSaved }: { row: DeliveryRow; onSaved
           Tracking number
         </label>
         {/* The field and its button are one piece - an input group - with the counter behind them. */}
-        <div className="input-group w-auto flex-grow-1" style={{ minWidth: '14rem', maxWidth: '28rem' }}>
+        <div
+          className="input-group w-auto flex-grow-1"
+          style={{ minWidth: '14rem', maxWidth: '28rem' }}
+        >
           <input
             id={fieldId}
             name="trackingNumber"

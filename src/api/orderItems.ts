@@ -71,7 +71,10 @@ export interface PackingLine {
 
 /** `POST /packing`: creates a package from the given quantities of order items. */
 export async function createPackage(lines: PackingLine[]): Promise<string> {
-  const body = await api<{ message?: unknown } | null>('/packing', { method: 'POST', body: JSON.stringify(lines) })
+  const body = await api<{ message?: unknown } | null>('/packing', {
+    method: 'POST',
+    body: JSON.stringify(lines),
+  })
   return typeof body?.message === 'string' ? body.message : 'Package created.'
 }
 

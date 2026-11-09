@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import { productLabel } from '../format'
+import { productLabel, cell } from '../format'
 import { api } from './client'
 import { withPage } from './pageQuery'
 
@@ -21,7 +21,10 @@ export type PickingStage = 'ACTIVE' | 'CONSUMED'
 export const pickingOrdersPath = (page = 0, stage: PickingStage = 'ACTIVE') =>
   withPage(stage === 'ACTIVE' ? '/picking-orders' : `/picking-orders?status=${stage}`, page)
 
-export async function fetchPickingOrders(page = 0, stage: PickingStage = 'ACTIVE'): Promise<PickingOrderPage> {
+export async function fetchPickingOrders(
+  page = 0,
+  stage: PickingStage = 'ACTIVE',
+): Promise<PickingOrderPage> {
   const body = await api<PickingOrderPage | PickingOrderDto[]>(pickingOrdersPath(page, stage))
   if (Array.isArray(body)) return { content: body, total: body.length, page: 0, size: body.length }
   return { ...body, content: body.content ?? [] }
@@ -43,7 +46,8 @@ export const pickReservation = (reservationId: string) =>
   postPicking(`/picking/${encodeURIComponent(reservationId)}`)
 
 /** `POST /picking/order/{orderNo}`: picks a whole order. */
-export const pickOrder = (orderNo: string) => postPicking(`/picking/order/${encodeURIComponent(orderNo)}`)
+export const pickOrder = (orderNo: string) =>
+  postPicking(`/picking/order/${encodeURIComponent(orderNo)}`)
 
 /**
  * `POST /release/{reservationId}`: takes a pick back - the line goes to WAITING, the stock back onto the shelf, the
@@ -57,6 +61,6 @@ export async function releasePick(reservationId: string): Promise<string> {
 /** What a person is asked before a pick is taken back - it moves stock, so it is not one click. */
 export function releaseQuestion(item: Record<string, unknown>): string {
   const what = productLabel(item.productName, item.articleNo)
-  const order = item.orderNo != null ? ` of order ${String(item.orderNo)}` : ''
+  const order = item.orderNo != null ? ` of order ${cell(item.orderNo)}` : ''
   return `Take back the pick of ${what || 'this item'}${order}? The goods go back onto the shelf and the reservation is deleted.`
 }

@@ -28,8 +28,15 @@ function StorehouseSelect({
 }) {
   return (
     <>
-      <label className="form-label mb-0" htmlFor={id}>{label}</label>
-      <select id={id} className="form-select form-select-sm" value={value} onChange={(e) => onChange(e.target.value)}>
+      <label className="form-label mb-0" htmlFor={id}>
+        {label}
+      </label>
+      <select
+        id={id}
+        className="form-select form-select-sm"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
         <option value="">Choose a storehouse…</option>
         {choices.map((choice) => (
           <option key={choice.id} value={choice.id}>
@@ -41,10 +48,20 @@ function StorehouseSelect({
   )
 }
 
-function QuantityField({ id, value, onChange }: { id: string; value: string; onChange: (value: string) => void }) {
+function QuantityField({
+  id,
+  value,
+  onChange,
+}: {
+  id: string
+  value: string
+  onChange: (value: string) => void
+}) {
   return (
     <>
-      <label className="form-label mb-0" htmlFor={id}>Quantity</label>
+      <label className="form-label mb-0" htmlFor={id}>
+        Quantity
+      </label>
       <input
         id={id}
         type="number"
@@ -61,13 +78,23 @@ function QuantityField({ id, value, onChange }: { id: string; value: string; onC
 function FormFooter({ notice }: { notice: Notice }) {
   return (
     <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
-      {notice && <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>}
+      {notice && (
+        <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>
+      )}
     </div>
   )
 }
 
 /** `POST /stock/add`: more of an article into a storehouse. */
-function BookStockForm({ options, choices, onBooked }: { options: SkuOption[]; choices: StorehouseChoice[]; onBooked: (sku: string) => void }) {
+function BookStockForm({
+  options,
+  choices,
+  onBooked,
+}: {
+  options: SkuOption[]
+  choices: StorehouseChoice[]
+  onBooked: (sku: string) => void
+}) {
   const queryClient = useQueryClient()
   const [sku, setSku] = useState<string | null>(null)
   const [storehouseId, setStorehouseId] = useState('')
@@ -77,7 +104,10 @@ function BookStockForm({ options, choices, onBooked }: { options: SkuOption[]; c
   const book = useMutation({
     mutationFn: addStock,
     onSuccess: async (row: StockRow) => {
-      setNotice({ text: `Booked. ${row.storehouseName ?? 'The storehouse'} now holds ${row.onHand} (${row.available} available).`, failed: false })
+      setNotice({
+        text: `Booked. ${row.storehouseName ?? 'The storehouse'} now holds ${row.onHand} (${row.available} available).`,
+        failed: false,
+      })
       setQty('')
       onBooked(row.sku)
       await queryClient.invalidateQueries({ queryKey: ['stock'] })
@@ -100,11 +130,23 @@ function BookStockForm({ options, choices, onBooked }: { options: SkuOption[]; c
     >
       <div className="card-body d-flex flex-column gap-2">
         <h3 className="h5">Book stock</h3>
-        <p className="small text-body-secondary mb-1">Adds to what a storehouse holds of an article, as a goods receipt does.</p>
+        <p className="small text-body-secondary mb-1">
+          Adds to what a storehouse holds of an article, as a goods receipt does.
+        </p>
         <SkuAutocomplete options={options} value={sku} onChange={setSku} />
-        <StorehouseSelect id="book-storehouse" label="Storehouse" value={storehouseId} onChange={setStorehouseId} choices={choices} />
+        <StorehouseSelect
+          id="book-storehouse"
+          label="Storehouse"
+          value={storehouseId}
+          onChange={setStorehouseId}
+          choices={choices}
+        />
         <QuantityField id="book-qty" value={qty} onChange={setQty} />
-        <button type="submit" className="btn btn-success align-self-start mt-2" disabled={book.isPending}>
+        <button
+          type="submit"
+          className="btn btn-success align-self-start mt-2"
+          disabled={book.isPending}
+        >
           Book
         </button>
       </div>
@@ -114,7 +156,15 @@ function BookStockForm({ options, choices, onBooked }: { options: SkuOption[]; c
 }
 
 /** `POST /stock/transfer`: an article from one storehouse to another. */
-function TransferStockForm({ options, choices, onMoved }: { options: SkuOption[]; choices: StorehouseChoice[]; onMoved: (sku: string) => void }) {
+function TransferStockForm({
+  options,
+  choices,
+  onMoved,
+}: {
+  options: SkuOption[]
+  choices: StorehouseChoice[]
+  onMoved: (sku: string) => void
+}) {
   const queryClient = useQueryClient()
   const [sku, setSku] = useState<string | null>(null)
   const [from, setFrom] = useState('')
@@ -125,7 +175,10 @@ function TransferStockForm({ options, choices, onMoved }: { options: SkuOption[]
   const transfer = useMutation({
     mutationFn: transferStock,
     onSuccess: async (row: StockRow) => {
-      setNotice({ text: `Moved. ${row.storehouseName ?? 'The target'} now holds ${row.onHand}.`, failed: false })
+      setNotice({
+        text: `Moved. ${row.storehouseName ?? 'The target'} now holds ${row.onHand}.`,
+        failed: false,
+      })
       setQty('')
       onMoved(row.sku)
       await queryClient.invalidateQueries({ queryKey: ['stock'] })
@@ -148,12 +201,30 @@ function TransferStockForm({ options, choices, onMoved }: { options: SkuOption[]
     >
       <div className="card-body d-flex flex-column gap-2">
         <h3 className="h5">Transfer stock</h3>
-        <p className="small text-body-secondary mb-1">Takes it out of one storehouse and books it into another.</p>
+        <p className="small text-body-secondary mb-1">
+          Takes it out of one storehouse and books it into another.
+        </p>
         <SkuAutocomplete options={options} value={sku} onChange={setSku} />
-        <StorehouseSelect id="transfer-from" label="From" value={from} onChange={setFrom} choices={choices} />
-        <StorehouseSelect id="transfer-to" label="To" value={to} onChange={setTo} choices={choices} />
+        <StorehouseSelect
+          id="transfer-from"
+          label="From"
+          value={from}
+          onChange={setFrom}
+          choices={choices}
+        />
+        <StorehouseSelect
+          id="transfer-to"
+          label="To"
+          value={to}
+          onChange={setTo}
+          choices={choices}
+        />
         <QuantityField id="transfer-qty" value={qty} onChange={setQty} />
-        <button type="submit" className="btn btn-primary align-self-start mt-2" disabled={transfer.isPending}>
+        <button
+          type="submit"
+          className="btn btn-primary align-self-start mt-2"
+          disabled={transfer.isPending}
+        >
           Transfer
         </button>
       </div>
@@ -179,7 +250,9 @@ export function StockOverviewPage() {
   }
 
   const options: SkuOption[] = (products?.content ?? []).flatMap((product) =>
-    typeof product.sku === 'string' ? [{ sku: product.sku, name: typeof product.name === 'string' ? product.name : undefined }] : [],
+    typeof product.sku === 'string'
+      ? [{ sku: product.sku, name: typeof product.name === 'string' ? product.name : undefined }]
+      : [],
   )
   const choices = storehouses ?? []
 

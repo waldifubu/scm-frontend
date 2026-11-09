@@ -117,16 +117,28 @@ export function isSoldOut(available: number): boolean {
 }
 
 /** The columns of the inventory table the backend can sort by (`StockController.INVENTORY_SORTABLE`). */
-export const INVENTORY_SORT_KEYS: readonly string[] = ['sku', 'onHand', 'reserved', 'available', 'updatedAt']
+export const INVENTORY_SORT_KEYS: readonly string[] = [
+  'sku',
+  'onHand',
+  'reserved',
+  'available',
+  'updatedAt',
+]
 
 /** `GET /stock/inventory` for a page and a sort; no sort is the backend's own order, by SKU. */
 export function inventoryPath(page = 0, sort: TableSort | null = null): string {
   const key = sort !== null && INVENTORY_SORT_KEYS.includes(sort.column) ? sort.column : undefined
-  const path = key === undefined ? '/stock/inventory' : `/stock/inventory?sort=${key}&order=${sort?.direction === 'desc' ? 'DESC' : 'ASC'}`
+  const path =
+    key === undefined
+      ? '/stock/inventory'
+      : `/stock/inventory?sort=${key}&order=${sort?.direction === 'desc' ? 'DESC' : 'ASC'}`
   return withPage(path, page)
 }
 
-export async function fetchInventory(page = 0, sort: TableSort | null = null): Promise<InventoryPage> {
+export async function fetchInventory(
+  page = 0,
+  sort: TableSort | null = null,
+): Promise<InventoryPage> {
   const body = await api<InventoryPage | InventoryRow[]>(inventoryPath(page, sort))
   if (Array.isArray(body)) return { content: body, total: body.length, page: 0, size: body.length }
   return { ...body, content: body.content ?? [] }

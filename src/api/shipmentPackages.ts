@@ -33,7 +33,10 @@ export const SHIPMENT_PACKAGE_TYPES = [
 ] as const
 
 /** `DELETE /packing/shipment/{shipmentPackageId}/items/{packageItemId}`: removes one item from a shipment package. */
-export async function deleteShipmentItem(shipmentPackageId: string, packageItemId: string): Promise<string> {
+export async function deleteShipmentItem(
+  shipmentPackageId: string,
+  packageItemId: string,
+): Promise<string> {
   const body = await api<{ message?: unknown } | null>(
     `/packing/shipment/${encodeURIComponent(shipmentPackageId)}/items/${encodeURIComponent(packageItemId)}`,
     { method: 'DELETE' },
@@ -50,13 +53,20 @@ export async function deleteShipmentItem(shipmentPackageId: string, packageItemI
  * packed, all taken from the answer. A `message`, should the backend ever send one, wins.
  */
 export async function completeShipmentPackage(shipmentPackageId: string): Promise<string> {
-  const body = await api<{ message?: unknown; packageNumber?: unknown; status?: unknown; packedAt?: unknown } | null>(
-    `/packing/shipment/${encodeURIComponent(shipmentPackageId)}/complete`,
-    { method: 'PUT' },
-  )
+  const body = await api<{
+    message?: unknown
+    packageNumber?: unknown
+    status?: unknown
+    packedAt?: unknown
+  } | null>(`/packing/shipment/${encodeURIComponent(shipmentPackageId)}/complete`, {
+    method: 'PUT',
+  })
   if (typeof body?.message === 'string') return body.message
 
-  const name = typeof body?.packageNumber === 'string' ? `Package ${body.packageNumber}` : `Package ${shipmentPackageId}`
+  const name =
+    typeof body?.packageNumber === 'string'
+      ? `Package ${body.packageNumber}`
+      : `Package ${shipmentPackageId}`
   const state = typeof body?.status === 'string' ? `is ${body.status}` : 'was completed'
   const at = typeof body?.packedAt === 'string' ? ` (packed ${body.packedAt})` : ''
   return `${name} ${state}${at}.`
@@ -71,11 +81,17 @@ export interface ShipmentPackageUpdate {
 }
 
 /** `PUT /packing/shipment/{id}`: changes type, number and dimensions of a shipment package. */
-export async function updateShipmentPackage(id: string, request: ShipmentPackageUpdate): Promise<string> {
-  const body = await api<{ message?: unknown } | null>(`/packing/shipment/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify(request),
-  })
+export async function updateShipmentPackage(
+  id: string,
+  request: ShipmentPackageUpdate,
+): Promise<string> {
+  const body = await api<{ message?: unknown } | null>(
+    `/packing/shipment/${encodeURIComponent(id)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(request),
+    },
+  )
   return typeof body?.message === 'string' ? body.message : 'Container updated.'
 }
 
@@ -91,7 +107,9 @@ export interface ShipmentPackageFilter {
   order?: 'ASC' | 'DESC'
 }
 
-export async function fetchShipmentPackages(filter: ShipmentPackageFilter = {}): Promise<ShipmentPackagePage> {
+export async function fetchShipmentPackages(
+  filter: ShipmentPackageFilter = {},
+): Promise<ShipmentPackagePage> {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(filter)) {
     if (value !== undefined && value !== '') params.set(key, String(value))
@@ -101,7 +119,7 @@ export async function fetchShipmentPackages(filter: ShipmentPackageFilter = {}):
   if (Array.isArray(body)) return { content: body, total: body.length, page: 0, size: body.length }
   return { ...body, content: body.content ?? [] }
 }
-
+
 /** `GET /shipment-packages/{id}`. */
 export const shipmentPackageQueryOptions = (id: string) =>
   queryOptions({

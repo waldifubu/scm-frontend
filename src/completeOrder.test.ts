@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import type { UserDto } from './api/types'
 import { mayCompleteOrder } from './completeOrder'
 
@@ -26,7 +26,15 @@ describe('mayCompleteOrder', () => {
     expect(mayCompleteOrder(user(role), 'DELIVERED')).toBe(false)
   })
 
-  it.each(['PARTIALLY_DELIVERED', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'CREATED', undefined, null])('not for an order that is %s', (status) => {
+  it.each([
+    'PARTIALLY_DELIVERED',
+    'IN_TRANSIT',
+    'COMPLETED',
+    'CANCELLED',
+    'CREATED',
+    undefined,
+    null,
+  ])('not for an order that is %s', (status) => {
     expect(mayCompleteOrder(user('MANAGER'), status)).toBe(false)
   })
 

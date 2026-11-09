@@ -7,13 +7,9 @@ import { showsShipments } from '../api/orderShipments'
 import { CompleteOrderButton } from './CompleteOrderButton'
 import { OrderLinesTable } from './OrderLinesTable'
 import { OrderShipments } from './OrderShipments'
+import { cell } from '../format'
 
 const route = getRouteApi('/authed/orders/$orderNumber')
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
 
 /** The details of one order, shown below the orders table. */
 export function OrderDetailsPage() {
@@ -23,15 +19,17 @@ export function OrderDetailsPage() {
 
   return (
     <>
-    <div className="card shadow-sm mt-4">
-      <div className="card-body">
-        <h3 className="h5">Order {orderNumber}</h3>
-        {isPending && <p className="mb-0">Loading details…</p>}
-        {error && <p className="mb-0 text-danger">{error.message}</p>}
-        {order && <OrderFields order={order} orderNumber={orderNumber} />}
+      <div className="card shadow-sm mt-4">
+        <div className="card-body">
+          <h3 className="h5">Order {orderNumber}</h3>
+          {isPending && <p className="mb-0">Loading details…</p>}
+          {error && <p className="mb-0 text-danger">{error.message}</p>}
+          {order && <OrderFields order={order} orderNumber={orderNumber} />}
+        </div>
       </div>
-    </div>
-    {order && mayCompleteOrder(user, order.status) && <CompleteOrderButton orderNumber={orderNumber} />}
+      {order && mayCompleteOrder(user, order.status) && (
+        <CompleteOrderButton orderNumber={orderNumber} />
+      )}
     </>
   )
 }

@@ -10,7 +10,13 @@ export interface MyRequestRow {
   updated: string | null
   /** How many were ordered - not the component's own `qty`, which is the bill-of-materials quantity. */
   qty: number
-  component: { id: number; manufacturer: string | null; name: string | null; sku: string | null; articleNo: string | null } | null
+  component: {
+    id: number
+    manufacturer: string | null
+    name: string | null
+    sku: string | null
+    articleNo: string | null
+  } | null
 }
 
 /** `GET /supplier/my-requests`: the supplier's own requests, a plain list - not paged. */
@@ -28,6 +34,9 @@ export const myRequestsQueryOptions = queryOptions({
 export type SupplierAction = 'approve' | 'intransit' | 'delivered' | 'reject' | 'cancel'
 
 /** Answers one request. The backend refuses another supplier's request (403) and a step the status does not allow (409). */
-export function answerRequest(id: number, action: SupplierAction): Promise<Record<string, unknown>> {
+export function answerRequest(
+  id: number,
+  action: SupplierAction,
+): Promise<Record<string, unknown>> {
   return api<Record<string, unknown>>(`/supplier/${id}/${action}`, { method: 'POST' })
 }

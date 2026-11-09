@@ -5,11 +5,7 @@ import { createOrder } from '../api/orders'
 import { productsQueryOptions } from '../api/products'
 import { NavIcon } from './NavIcon'
 import { PageTitle } from './PageTitle'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
+import { cell } from '../format'
 
 /** Lists the products with a quantity field each; whatever has a quantity goes into the order. */
 export function CreateOrderPage() {
@@ -42,7 +38,9 @@ export function CreateOrderPage() {
       }}
     >
       <div className="card-body d-flex flex-wrap gap-3 align-items-center">
-        <PageTitle icon="create-order" className="me-auto">Create order</PageTitle>
+        <PageTitle icon="create-order" className="me-auto">
+          Create order
+        </PageTitle>
       </div>
 
       {isPending && <p className="p-3 mb-0">Loading products…</p>}
@@ -71,7 +69,9 @@ export function CreateOrderPage() {
                         className="form-control form-control-sm"
                         aria-label={`Quantity of ${articleNo}`}
                         value={quantities[articleNo] ?? ''}
-                        onChange={(e) => setQuantities({ ...quantities, [articleNo]: e.target.value })}
+                        onChange={(e) =>
+                          setQuantities({ ...quantities, [articleNo]: e.target.value })
+                        }
                       />
                     </td>
                   </tr>

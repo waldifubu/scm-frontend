@@ -5,13 +5,9 @@ import { meQueryOptions } from '../api/auth'
 import { componentQueryOptions, patchComponent, type ComponentDto } from '../api/components'
 import { hasRole } from '../api/types'
 import { formOf, formProblem, patchOf, type ComponentForm } from '../componentEdit'
+import { cell } from '../format'
 
 const route = getRouteApi('/authed/components/$sku')
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
 
 /** A product reads as its name with the article number in brackets, and links to its details. */
 function productValue(product: unknown): ReactNode {
@@ -80,7 +76,9 @@ function ComponentFields({
 
   // An editable field the backend left out (a null) still gets its row, so it can be filled in.
   const missing = EDITABLE_KEYS.filter((key) => !fields.some(([name]) => name === key))
-  const rows: [string, unknown][] = editable ? [...fields, ...missing.map((key): [string, unknown] => [key, null])] : fields
+  const rows: [string, unknown][] = editable
+    ? [...fields, ...missing.map((key): [string, unknown] => [key, null])]
+    : fields
 
   return (
     <form
@@ -120,7 +118,11 @@ function ComponentFields({
       </dl>
       {editable && (
         <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
-          <button type="submit" className="btn btn-success" disabled={!dirty || !!problem || save.isPending}>
+          <button
+            type="submit"
+            className="btn btn-success"
+            disabled={!dirty || !!problem || save.isPending}
+          >
             {save.isPending ? 'Saving…' : 'Save'}
           </button>
           <button
@@ -159,7 +161,9 @@ export function ComponentDetailsPage() {
   const { data: user } = useQuery(meQueryOptions)
   const [notice, setNotice] = useState<string | null>(null)
   // The roles `PATCH /components/{sku}` lets through; anybody else would get a 403.
-  const canEdit = user ? ['ADMIN', 'MANAGER', 'WAREHOUSE'].some((role) => hasRole(user, role)) : false
+  const canEdit = user
+    ? ['ADMIN', 'MANAGER', 'WAREHOUSE'].some((role) => hasRole(user, role))
+    : false
 
   const entries = component ? Object.entries(component) : []
   const lists = entries.filter(([, value]) => Array.isArray(value))

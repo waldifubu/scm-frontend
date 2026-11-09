@@ -24,7 +24,9 @@ export const PASTEL_RAINBOW: readonly string[] = [
  * By first appearance and not by a hash of the key, on purpose: a hash gives two neighbouring groups the same
  * colour now and then, and a group reads as one only if its neighbours do not look like it.
  */
-export function groupColors(keys: readonly (string | number | null | undefined)[]): (string | null)[] {
+export function groupColors(
+  keys: readonly (string | number | null | undefined)[],
+): (string | null)[] {
   const byGroup = new Map<string, string>()
   return keys.map((key) => {
     if (key === null || key === undefined || String(key).trim() === '') return null

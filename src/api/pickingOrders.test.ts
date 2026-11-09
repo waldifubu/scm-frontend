@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { pickingOrdersPath, releasePick, releaseQuestion } from './pickingOrders'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -21,7 +21,11 @@ describe('pickingOrdersPath', () => {
 
 describe('releasePick', () => {
   it('posts to the release step of that reservation and says what happened', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('{"reservationId":25,"fulfillmentStatus":"WAITING"}', { status: 200 }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response('{"reservationId":25,"fulfillmentStatus":"WAITING"}', { status: 200 }),
+      )
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(releasePick('25')).resolves.toBe('Pick of reservation 25 taken back.')
@@ -34,11 +38,19 @@ describe('releasePick', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ message: 'Order item 11 is PACKED, only a PICKED line can be taken back' }), { status: 409 }),
+        new Response(
+          JSON.stringify({
+            message: 'Order item 11 is PACKED, only a PICKED line can be taken back',
+          }),
+          { status: 409 },
+        ),
       ),
     )
 
-    await expect(releasePick('25')).rejects.toMatchObject({ status: 409, message: expect.stringContaining('PACKED') })
+    await expect(releasePick('25')).rejects.toMatchObject({
+      status: 409,
+      message: expect.stringContaining('PACKED'),
+    })
   })
 })
 

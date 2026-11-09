@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { formOf, formProblem, patchOf } from './componentEdit'
 
 const component = {
@@ -14,7 +14,12 @@ const component = {
 describe('formOf', () => {
   it('holds every editable field as text, a missing one as empty', () => {
     expect(formOf(component)).toEqual({
-      name: 'Blech', manufacturer: 'ACME', description: 'ein Blech', externalId: 'EXT-1', weight: '12.5', qty: '2',
+      name: 'Blech',
+      manufacturer: 'ACME',
+      description: 'ein Blech',
+      externalId: 'EXT-1',
+      weight: '12.5',
+      qty: '2',
     })
     expect(formOf({ name: 'x', qty: 1 }).manufacturer).toBe('')
   })

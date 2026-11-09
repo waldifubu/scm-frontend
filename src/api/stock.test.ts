@@ -1,5 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchStock, fetchStockBySku, inventoryPath, isSoldOut, STOCK_PAGE_SIZE, stockTotals, type StockRow } from './stock'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
+import {
+  fetchStock,
+  fetchStockBySku,
+  inventoryPath,
+  isSoldOut,
+  STOCK_PAGE_SIZE,
+  stockTotals,
+  type StockRow,
+} from './stock'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -34,17 +42,27 @@ describe('fetchStockBySku', () => {
   })
 
   it('reads a 404 as no stock, as an older backend answered it', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ message: 'Stock not found' }), { status: 404 }),
-    ))
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ message: 'Stock not found' }), { status: 404 }),
+        ),
+    )
 
     await expect(fetchStockBySku('abc')).resolves.toEqual([])
   })
 
   it('does not hide other failures', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ message: 'Access denied' }), { status: 403 }),
-    ))
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ message: 'Access denied' }), { status: 403 }),
+        ),
+    )
 
     await expect(fetchStockBySku('abc')).rejects.toMatchObject({ status: 403 })
   })
@@ -61,7 +79,11 @@ describe('fetchStockBySku', () => {
 
 describe('stockTotals', () => {
   it('adds up every storehouse', () => {
-    expect(stockTotals([row(10, 3), row(4, 0)])).toEqual({ onHand: 14, reserved: 3, available: 11 })
+    expect(stockTotals([row(10, 3), row(4, 0)])).toEqual({
+      onHand: 14,
+      reserved: 3,
+      available: 11,
+    })
   })
 
   it('is zero without rows', () => {
@@ -72,7 +94,9 @@ describe('stockTotals', () => {
 describe('fetchStock', () => {
   it('asks for a page big enough to search the whole storehouse', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ content: [], total: 0, page: 0, size: 500 }), { status: 200 }),
+      new Response(JSON.stringify({ content: [], total: 0, page: 0, size: 500 }), {
+        status: 200,
+      }),
     )
     vi.stubGlobal('fetch', fetchMock)
 
@@ -89,12 +113,18 @@ describe('inventoryPath', () => {
   })
 
   it('names the sort and its direction', () => {
-    expect(inventoryPath(0, { column: 'onHand', direction: 'desc' })).toBe('/stock/inventory?sort=onHand&order=DESC')
-    expect(inventoryPath(0, { column: 'updatedAt', direction: 'asc' })).toBe('/stock/inventory?sort=updatedAt&order=ASC')
+    expect(inventoryPath(0, { column: 'onHand', direction: 'desc' })).toBe(
+      '/stock/inventory?sort=onHand&order=DESC',
+    )
+    expect(inventoryPath(0, { column: 'updatedAt', direction: 'asc' })).toBe(
+      '/stock/inventory?sort=updatedAt&order=ASC',
+    )
   })
 
   it('adds the page after the sort', () => {
-    expect(inventoryPath(2, { column: 'sku', direction: 'asc' })).toBe('/stock/inventory?sort=sku&order=ASC&page=2')
+    expect(inventoryPath(2, { column: 'sku', direction: 'asc' })).toBe(
+      '/stock/inventory?sort=sku&order=ASC&page=2',
+    )
     expect(inventoryPath(1)).toBe('/stock/inventory?page=1')
   })
 

@@ -90,7 +90,9 @@ export interface ShipmentPackageRow {
 }
 
 /** The volume of all packages added up; `null` for a shipment without packages, which has none to show. */
-export function totalVolume(packages: readonly Pick<ShipmentPackageRow, 'volume'>[]): number | null {
+export function totalVolume(
+  packages: readonly Pick<ShipmentPackageRow, 'volume'>[],
+): number | null {
   if (packages.length === 0) return null
   return packages.reduce((sum, pack) => sum + (pack.volume ?? 0), 0)
 }
@@ -225,7 +227,12 @@ export function canAcceptShipment(status: string): boolean {
  * The statuses a shipment can be called off in - up to the carrier's acceptance, as the backend has it.
  * A carrier only ever has shipments from DISPATCH_REQUESTED on, so for them it is those two.
  */
-export const CANCELLABLE_STATES: readonly ShipmentState[] = ['CREATED', 'READY', 'DISPATCH_REQUESTED', 'ACCEPTED']
+export const CANCELLABLE_STATES: readonly ShipmentState[] = [
+  'CREATED',
+  'READY',
+  'DISPATCH_REQUESTED',
+  'ACCEPTED',
+]
 
 export function canCancelShipment(status: string): boolean {
   return (CANCELLABLE_STATES as readonly string[]).includes(status)
@@ -242,7 +249,9 @@ export function canReportReady(status: string): boolean {
  * behind them to READY_FOR_DISPATCH. Only then can a distributor be assigned.
  */
 export function reportShipmentReady(shipmentId: number | string): Promise<ShipmentDetail> {
-  return api<ShipmentDetail>(`/shipments/${encodeURIComponent(String(shipmentId))}/ready`, { method: 'PUT' })
+  return api<ShipmentDetail>(`/shipments/${encodeURIComponent(String(shipmentId))}/ready`, {
+    method: 'PUT',
+  })
 }
 
 /** The carrier reports the shipment on its way from ACCEPTED only - the backend answers 409 for any other status. */
@@ -255,7 +264,9 @@ export function canMarkInTransit(status: string): boolean {
  * `shippedAt`, takes the packages from PACKED to DISPATCHED and the orders along. No body.
  */
 export function shipmentInTransit(shipmentId: number | string): Promise<DeliveryRow> {
-  return api<DeliveryRow>(`/shipments/${encodeURIComponent(String(shipmentId))}/intransit`, { method: 'POST' })
+  return api<DeliveryRow>(`/shipments/${encodeURIComponent(String(shipmentId))}/intransit`, {
+    method: 'POST',
+  })
 }
 
 /** The carrier reports the goods arrived from IN_TRANSIT only - the backend answers 409 for any other status. */
@@ -268,7 +279,9 @@ export function canMarkDelivered(status: string): boolean {
  * `deliveredAt` and takes the orders along. No body.
  */
 export function shipmentDelivered(shipmentId: number | string): Promise<DeliveryRow> {
-  return api<DeliveryRow>(`/shipments/${encodeURIComponent(String(shipmentId))}/delivered`, { method: 'POST' })
+  return api<DeliveryRow>(`/shipments/${encodeURIComponent(String(shipmentId))}/delivered`, {
+    method: 'POST',
+  })
 }
 
 /** The longest tracking number the backend takes (`TrackingNumberRequest.MAX_LENGTH`). */
@@ -302,7 +315,10 @@ export function canSetTrackingNumber(status: string): boolean {
  * `PATCH /shipments/{id}/trackingnumber`: the carrier's own reference for the shipment, at most 70 characters.
  * Moves no status. The answer is the shipment as the carrier sees it.
  */
-export function setTrackingNumber(shipmentId: number | string, trackingNumber: string): Promise<DeliveryRow> {
+export function setTrackingNumber(
+  shipmentId: number | string,
+  trackingNumber: string,
+): Promise<DeliveryRow> {
   return api<DeliveryRow>(`/shipments/${encodeURIComponent(String(shipmentId))}/trackingnumber`, {
     method: 'PATCH',
     body: JSON.stringify({ trackingNumber: trackingNumber.trim() }),
@@ -343,7 +359,10 @@ export function declineShipment(shipmentId: number | string, reason: string): Pr
  * `POST /shipments/{id}/cancel`: calls the shipment off. The reason is required - the backend answers 400
  * without one - and is kept in the shipment's comment. Up to ACCEPTED only, 409 after.
  */
-export function cancelShipment(shipmentId: number | string, reason: string): Promise<ShipmentDetail> {
+export function cancelShipment(
+  shipmentId: number | string,
+  reason: string,
+): Promise<ShipmentDetail> {
   return api<ShipmentDetail>(`/shipments/${encodeURIComponent(String(shipmentId))}/cancel`, {
     method: 'POST',
     body: JSON.stringify({ reason }),
@@ -351,7 +370,12 @@ export function cancelShipment(shipmentId: number | string, reason: string): Pro
 }
 
 /** The statuses in which the shipment's own data can still be changed - up to the carrier's acceptance. */
-export const DATA_CHANGEABLE_STATES: readonly ShipmentState[] = ['CREATED', 'READY', 'DISPATCH_REQUESTED', 'ACCEPTED']
+export const DATA_CHANGEABLE_STATES: readonly ShipmentState[] = [
+  'CREATED',
+  'READY',
+  'DISPATCH_REQUESTED',
+  'ACCEPTED',
+]
 
 export function canEditShipmentData(status: string): boolean {
   return (DATA_CHANGEABLE_STATES as readonly string[]).includes(status)
@@ -385,7 +409,10 @@ export function createShipment(request: CreateShipmentRequest): Promise<Shipment
  * refuses (409/400) containers of another customer, ones already in a shipment and a shipment that has moved on;
  * the answer is the shipment as it is now.
  */
-export function addPackagesToShipment(shipmentId: number | string, shipmentPackageIds: number[]): Promise<ShipmentDetail> {
+export function addPackagesToShipment(
+  shipmentId: number | string,
+  shipmentPackageIds: number[],
+): Promise<ShipmentDetail> {
   return api<ShipmentDetail>(`/shipments/${encodeURIComponent(String(shipmentId))}/packages`, {
     method: 'POST',
     body: JSON.stringify({ shipmentPackageIds }),
@@ -393,7 +420,10 @@ export function addPackagesToShipment(shipmentId: number | string, shipmentPacka
 }
 
 /** `PUT /shipments/{id}`: changes address, method, requested delivery date and comment; the answer is the shipment as it is now. */
-export function updateShipment(shipmentId: number | string, request: UpdateShipmentRequest): Promise<ShipmentDetail> {
+export function updateShipment(
+  shipmentId: number | string,
+  request: UpdateShipmentRequest,
+): Promise<ShipmentDetail> {
   return api<ShipmentDetail>(`/shipments/${encodeURIComponent(String(shipmentId))}`, {
     method: 'PUT',
     body: JSON.stringify(request),
@@ -404,7 +434,11 @@ export function updateShipment(shipmentId: number | string, request: UpdateShipm
  * The statuses a distributor can be assigned in - the backend answers 409 for any other. DECLINED is one: the
  * carrier turned the shipment down, and the planner hands it to somebody else.
  */
-export const ASSIGNABLE_STATES: readonly ShipmentState[] = ['READY', 'DISPATCH_REQUESTED', 'DECLINED']
+export const ASSIGNABLE_STATES: readonly ShipmentState[] = [
+  'READY',
+  'DISPATCH_REQUESTED',
+  'DECLINED',
+]
 
 export function canAssignDistributor(status: string): boolean {
   return (ASSIGNABLE_STATES as readonly string[]).includes(status)
@@ -415,7 +449,11 @@ export function canAssignDistributor(status: string): boolean {
  * the shipment to somebody does not appear at all there - it is not a step that is merely not allowed
  * for now, it is behind the shipment.
  */
-export const CARRIER_HAS_IT_STATES: readonly ShipmentState[] = ['ACCEPTED', 'IN_TRANSIT', 'DELIVERED']
+export const CARRIER_HAS_IT_STATES: readonly ShipmentState[] = [
+  'ACCEPTED',
+  'IN_TRANSIT',
+  'DELIVERED',
+]
 
 /**
  * Whether the page offers "Assign distributor" at all: everywhere except once the carrier has the
@@ -430,7 +468,10 @@ export function showsAssignButton(status: string): boolean {
  * `PUT /shipments/{id}/distributor/{distributorId}`: hands the shipment to a carrier. It moves to
  * DISPATCH_REQUESTED, and the answer is the shipment as it is now.
  */
-export function assignDistributor(shipmentId: number | string, distributorId: number | string): Promise<ShipmentDetail> {
+export function assignDistributor(
+  shipmentId: number | string,
+  distributorId: number | string,
+): Promise<ShipmentDetail> {
   return api<ShipmentDetail>(
     `/shipments/${encodeURIComponent(String(shipmentId))}/distributor/${encodeURIComponent(String(distributorId))}`,
     { method: 'PUT' },

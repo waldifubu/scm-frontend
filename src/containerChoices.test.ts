@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { containerChoices, containerFits } from './containerChoices'
 
 describe('containerChoices', () => {
@@ -14,24 +14,39 @@ describe('containerChoices', () => {
     }
 
     expect(containerChoices([row])).toEqual([
-      { id: 7, packageNumber: 'PK-1', type: 'PALLET', orderNo: '90123', packages: 2, weight: 12.5, volume: 250000 },
+      {
+        id: 7,
+        packageNumber: 'PK-1',
+        type: 'PALLET',
+        orderNo: '90123',
+        packages: 2,
+        weight: 12.5,
+        volume: 250000,
+      },
     ])
   })
 
   it('names an order once, however many of its items the container holds', () => {
-    const [choice] = containerChoices([{ id: 1, items: [{ orderNo: 5 }, { orderNo: 6 }, { orderNo: 5 }] }])
+    const [choice] = containerChoices([
+      { id: 1, items: [{ orderNo: 5 }, { orderNo: 6 }, { orderNo: 5 }] },
+    ])
 
     expect(choice?.orderNo).toBe('5, 6')
   })
 
   it('leaves what a container does not have empty, an empty container included', () => {
-    expect(containerChoices([{ id: 9, packageNumber: null, type: null, weight: null, items: [] }])).toEqual([
+    expect(
+      containerChoices([{ id: 9, packageNumber: null, type: null, weight: null, items: [] }]),
+    ).toEqual([
       { id: 9, packageNumber: '', type: '', orderNo: '', packages: 0, weight: null, volume: null },
     ])
   })
 
   it('counts the items itself where the backend sends no figure', () => {
-    expect(containerChoices([{ id: 2, items: [{ orderNo: 1 }, { orderNo: 1 }, { orderNo: 1 }] }])[0]?.packages).toBe(3)
+    expect(
+      containerChoices([{ id: 2, items: [{ orderNo: 1 }, { orderNo: 1 }, { orderNo: 1 }] }])[0]
+        ?.packages,
+    ).toBe(3)
   })
 
   it('keeps the order of the answer and drops a row that cannot be addressed', () => {

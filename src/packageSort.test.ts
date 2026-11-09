@@ -1,12 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { nextSort } from './tableSort'
 import { PACKAGE_SORT_KEYS, sortStateOf, tableSortOf } from './packageSort'
 
 describe('PACKAGE_SORT_KEYS', () => {
   it('has the keys the backend knows, and no others', () => {
     expect(Object.values(PACKAGE_SORT_KEYS).sort()).toEqual([
-      'created', 'id', 'orderItem.fulfillmentStatus', 'orderItem.id', 'orderItem.order.orderNo', 'orderItem.quantity',
-      'quantity', 'shipmentPackage.id',
+      'created',
+      'id',
+      'orderItem.fulfillmentStatus',
+      'orderItem.id',
+      'orderItem.order.orderNo',
+      'orderItem.quantity',
+      'quantity',
+      'shipmentPackage.id',
     ])
   })
 
@@ -22,7 +28,10 @@ describe('PACKAGE_SORT_KEYS', () => {
 
 describe('tableSortOf', () => {
   it('finds the column a key belongs to, and the direction', () => {
-    expect(tableSortOf('orderItem.order.orderNo', 'DESC')).toEqual({ column: 'orderNo', direction: 'desc' })
+    expect(tableSortOf('orderItem.order.orderNo', 'DESC')).toEqual({
+      column: 'orderNo',
+      direction: 'desc',
+    })
     expect(tableSortOf('created', 'ASC')).toEqual({ column: 'createdAt', direction: 'asc' })
   })
 
@@ -46,8 +55,14 @@ describe('tableSortOf', () => {
 
 describe('sortStateOf', () => {
   it('turns a column and a direction into the sort and order to ask for', () => {
-    expect(sortStateOf({ column: 'orderNo', direction: 'asc' })).toEqual({ sort: 'orderItem.order.orderNo', order: 'ASC' })
-    expect(sortStateOf({ column: 'createdAt', direction: 'desc' })).toEqual({ sort: 'created', order: 'DESC' })
+    expect(sortStateOf({ column: 'orderNo', direction: 'asc' })).toEqual({
+      sort: 'orderItem.order.orderNo',
+      order: 'ASC',
+    })
+    expect(sortStateOf({ column: 'createdAt', direction: 'desc' })).toEqual({
+      sort: 'created',
+      order: 'DESC',
+    })
   })
 
   it('asks for no sort at all to get the own order of the list - created, then the order number', () => {
@@ -75,12 +90,17 @@ describe('the head of a column, clicked', () => {
   it('turns the default - created ascending - around with the first click on createdAt', () => {
     const state = sortStateOf(null)
 
-    expect(sortStateOf(nextSort(tableSortOf(state.sort, state.order), 'createdAt'))).toEqual({ sort: 'created', order: 'DESC' })
+    expect(sortStateOf(nextSort(tableSortOf(state.sort, state.order), 'createdAt'))).toEqual({
+      sort: 'created',
+      order: 'DESC',
+    })
   })
 
   it('starts the new column ascending when another one was sorted', () => {
     const afterOrder = sortStateOf({ column: 'orderNo', direction: 'desc' })
 
-    expect(sortStateOf(nextSort(tableSortOf(afterOrder.sort, afterOrder.order), 'quantity'))).toEqual({ sort: 'quantity', order: 'ASC' })
+    expect(
+      sortStateOf(nextSort(tableSortOf(afterOrder.sort, afterOrder.order), 'quantity')),
+    ).toEqual({ sort: 'quantity', order: 'ASC' })
   })
 })

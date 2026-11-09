@@ -1,19 +1,28 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { MAX_REQUEST_QTY, requestComponentsBody, uncoveredSkus } from './componentRequest'
 
 describe('requestComponentsBody', () => {
   it('makes one line per ticked component, each with its own quantity and the shared comment', () => {
     expect(requestComponentsBody(['a', 'b'], { a: '4', b: '10' }, ' bitte schnell ')).toEqual({
-      request: { items: [{ componentId: 'a', qty: 4, comment: 'bitte schnell' }, { componentId: 'b', qty: 10, comment: 'bitte schnell' }] },
+      request: {
+        items: [
+          { componentId: 'a', qty: 4, comment: 'bitte schnell' },
+          { componentId: 'b', qty: 10, comment: 'bitte schnell' },
+        ],
+      },
     })
   })
 
   it('starts a component whose quantity was not typed at 1', () => {
-    expect(requestComponentsBody(['a', 'b'], { b: '3' }, '').request?.items.map((item) => item.qty)).toEqual([1, 3])
+    expect(
+      requestComponentsBody(['a', 'b'], { b: '3' }, '').request?.items.map((item) => item.qty),
+    ).toEqual([1, 3])
   })
 
   it('leaves a blank comment out', () => {
-    expect(requestComponentsBody(['a'], { a: '1' }, '  ')).toEqual({ request: { items: [{ componentId: 'a', qty: 1 }] } })
+    expect(requestComponentsBody(['a'], { a: '1' }, '  ')).toEqual({
+      request: { items: [{ componentId: 'a', qty: 1 }] },
+    })
   })
 
   it('wants at least one component', () => {
@@ -21,11 +30,15 @@ describe('requestComponentsBody', () => {
   })
 
   it.each(['', ' ', '0', '-2', '1.5', 'abc'])('refuses the quantity %j', (qty) => {
-    expect(requestComponentsBody(['a'], { a: qty }, '').error).toMatch(/quantity of a has to be a whole number/)
+    expect(requestComponentsBody(['a'], { a: qty }, '').error).toMatch(
+      /quantity of a has to be a whole number/,
+    )
   })
 
   it('refuses a quantity above the backend limit', () => {
-    expect(requestComponentsBody(['a'], { a: String(MAX_REQUEST_QTY + 1) }, '').error).toMatch(/exceed/)
+    expect(requestComponentsBody(['a'], { a: String(MAX_REQUEST_QTY + 1) }, '').error).toMatch(
+      /exceed/,
+    )
     expect(requestComponentsBody(['a'], { a: String(MAX_REQUEST_QTY) }, '').request).toBeDefined()
   })
 
@@ -45,6 +58,8 @@ describe('uncoveredSkus', () => {
   })
 
   it('is empty when every component is covered', () => {
-    expect(uncoveredSkus([{ componentId: 'a', supplierId: 1, supplierName: 'X', ruleId: 1 }])).toEqual([])
+    expect(
+      uncoveredSkus([{ componentId: 'a', supplierId: 1, supplierName: 'X', ruleId: 1 }]),
+    ).toEqual([])
   })
 })

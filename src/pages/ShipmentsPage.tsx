@@ -23,7 +23,11 @@ import { PageTitle } from './PageTitle'
 
 function ShipmentLink({ id, children }: { id: number; children: React.ReactNode }) {
   return (
-    <Link to="/shipments/$shipmentId" params={{ shipmentId: String(id) }} className="text-decoration-none text-reset">
+    <Link
+      to="/shipments/$shipmentId"
+      params={{ shipmentId: String(id) }}
+      className="text-decoration-none text-reset"
+    >
       {children}
     </Link>
   )
@@ -75,7 +79,9 @@ function FilterBar({
 }) {
   return (
     <div className="card-body d-flex flex-wrap gap-2 align-items-center">
-      <PageTitle icon="shipments" className="me-auto">{title}</PageTitle>
+      <PageTitle icon="shipments" className="me-auto">
+        {title}
+      </PageTitle>
       <select
         className="form-select form-select-sm w-auto"
         aria-label="Shipment status"
@@ -155,7 +161,8 @@ function ShipmentsTable({
 
   if (isPending) return <p className="p-3 mb-0">Loading shipments…</p>
   if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
-  if (data.content.length === 0) return <p className="p-3 mb-0 text-body-secondary">No shipments.</p>
+  if (data.content.length === 0)
+    return <p className="p-3 mb-0 text-body-secondary">No shipments.</p>
 
   return (
     <>
@@ -165,9 +172,19 @@ function ShipmentsTable({
             <tr>
               <SortableHeader label="id" column="id" sort={sort} onSort={onSort} />
               <SortableHeader label="customer" column="customer" sort={sort} onSort={onSort} />
-              <SortableHeader label="distributor" column="distributor" sort={sort} onSort={onSort} />
+              <SortableHeader
+                label="distributor"
+                column="distributor"
+                sort={sort}
+                onSort={onSort}
+              />
               <SortableHeader label="status" column="status" sort={sort} onSort={onSort} />
-              <SortableHeader label="requestedDeliveryDate" column="requestedDeliveryDate" sort={sort} onSort={onSort} />
+              <SortableHeader
+                label="requestedDeliveryDate"
+                column="requestedDeliveryDate"
+                sort={sort}
+                onSort={onSort}
+              />
               <SortableHeader label="createdAt" column="createdAt" sort={sort} onSort={onSort} />
               <th className="text-end">packages</th>
             </tr>
@@ -186,11 +203,15 @@ function ShipmentsTable({
                 </td>
                 <td>
                   <ShipmentLink id={shipment.id}>
-                    <span className={`badge ${statusBadgeClass(shipment.status)}`}>{shipment.status}</span>
+                    <span className={`badge ${statusBadgeClass(shipment.status)}`}>
+                      {shipment.status}
+                    </span>
                   </ShipmentLink>
                 </td>
                 <td className="text-nowrap">
-                  <ShipmentLink id={shipment.id}>{formatDate(shipment.requestedDeliveryDate)}</ShipmentLink>
+                  <ShipmentLink id={shipment.id}>
+                    {formatDate(shipment.requestedDeliveryDate)}
+                  </ShipmentLink>
                 </td>
                 <td className="text-nowrap">
                   <ShipmentLink id={shipment.id}>{formatMoment(shipment.createdAt)}</ShipmentLink>
@@ -245,7 +266,8 @@ function MyShipmentsTable({
 
   if (isPending) return <p className="p-3 mb-0">Loading your shipments…</p>
   if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
-  if (data.content.length === 0) return <p className="p-3 mb-0 text-body-secondary">No shipments have been handed to you.</p>
+  if (data.content.length === 0)
+    return <p className="p-3 mb-0 text-body-secondary">No shipments have been handed to you.</p>
 
   return (
     <>
@@ -257,8 +279,18 @@ function MyShipmentsTable({
               <SortableHeader label="customer" column="customer" sort={sort} onSort={onSort} />
               <th>shippingAddress</th>
               <SortableHeader label="status" column="status" sort={sort} onSort={onSort} />
-              <SortableHeader label="requestedDeliveryDate" column="requestedDeliveryDate" sort={sort} onSort={onSort} />
-              <SortableHeader label="trackingNumber" column="trackingNumber" sort={sort} onSort={onSort} />
+              <SortableHeader
+                label="requestedDeliveryDate"
+                column="requestedDeliveryDate"
+                sort={sort}
+                onSort={onSort}
+              />
+              <SortableHeader
+                label="trackingNumber"
+                column="trackingNumber"
+                sort={sort}
+                onSort={onSort}
+              />
               <th className="text-end">packages</th>
               <th className="text-end">weight (kg)</th>
             </tr>
@@ -284,7 +316,9 @@ function MyShipmentsTable({
                 <td>{shipment.customerName ?? ''}</td>
                 <td>{shipment.shippingAddress ?? ''}</td>
                 <td>
-                  <span className={`badge ${statusBadgeClass(shipment.status)}`}>{shipment.status}</span>
+                  <span className={`badge ${statusBadgeClass(shipment.status)}`}>
+                    {shipment.status}
+                  </span>
                 </td>
                 <td className="text-nowrap">{formatDate(shipment.requestedDeliveryDate)}</td>
                 <td>{shipment.trackingNumber ?? ''}</td>
@@ -344,5 +378,7 @@ export function ShipmentsPage() {
   if (!user) return null
   if (SHIPMENT_ROLES.some((role) => hasRole(user, role))) return <AllShipmentsView />
   if (hasRole(user, CARRIER_ROLE)) return <MyShipmentsView />
-  return <p className="text-danger">Only logistics, distributors and admins may see the shipments.</p>
+  return (
+    <p className="text-danger">Only logistics, distributors and admins may see the shipments.</p>
+  )
 }

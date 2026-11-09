@@ -30,7 +30,14 @@ export async function fetchStorehouseChoices(): Promise<StorehouseChoice[]> {
   const body = await api<StorehousePage | StorehouseDto[]>('/storehouses?size=100')
   const rows = Array.isArray(body) ? body : (body.content ?? [])
   return rows.flatMap((row) =>
-    typeof row.id === 'number' ? [{ id: row.id, name: typeof row.name === 'string' && row.name ? row.name : `Storehouse ${row.id}` }] : [],
+    typeof row.id === 'number'
+      ? [
+          {
+            id: row.id,
+            name: typeof row.name === 'string' && row.name ? row.name : `Storehouse ${row.id}`,
+          },
+        ]
+      : [],
   )
 }
 

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { api } from './client'
 
 afterEach(() => {
@@ -7,11 +7,17 @@ afterEach(() => {
 
 describe('api', () => {
   it('prefixes the versioned API path and includes the session cookie', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 42 }), { status: 200 }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ id: 42 }), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(api<{ id: number }>('/products/42', { method: 'POST', body: JSON.stringify({ active: true }) }))
-      .resolves.toEqual({ id: 42 })
+    await expect(
+      api<{ id: number }>('/products/42', {
+        method: 'POST',
+        body: JSON.stringify({ active: true }),
+      }),
+    ).resolves.toEqual({ id: 42 })
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/1.0/products/42',
@@ -24,10 +30,15 @@ describe('api', () => {
   })
 
   it('maps a structured backend error to ApiError', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: 'Product does not exist.' }), {
-      status: 404,
-      statusText: 'Not Found',
-    })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ detail: 'Product does not exist.' }), {
+          status: 404,
+          statusText: 'Not Found',
+        }),
+      ),
+    )
 
     await expect(api('/products/404')).rejects.toMatchObject({
       name: 'ApiError',

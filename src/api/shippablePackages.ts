@@ -64,11 +64,17 @@ export const SHIPPABLE_SORT_KEYS: Readonly<Record<string, string>> = {
  */
 export function shippablePath(page = 0, sort: TableSort | null = null): string {
   const key = sort === null ? undefined : SHIPPABLE_SORT_KEYS[sort.column]
-  const path = key === undefined ? '/shipments/packages' : `/shipments/packages?sort=${key}&order=${sort?.direction === 'desc' ? 'DESC' : 'ASC'}`
+  const path =
+    key === undefined
+      ? '/shipments/packages'
+      : `/shipments/packages?sort=${key}&order=${sort?.direction === 'desc' ? 'DESC' : 'ASC'}`
   return withPage(path, page)
 }
 
-export async function fetchShippablePackages(page = 0, sort: TableSort | null = null): Promise<ShippablePage> {
+export async function fetchShippablePackages(
+  page = 0,
+  sort: TableSort | null = null,
+): Promise<ShippablePage> {
   const body = await api<ShippablePage | ShippablePackage[]>(shippablePath(page, sort))
   if (Array.isArray(body)) return { content: body, total: body.length, page: 0, size: body.length }
   return { ...body, content: body.content ?? [] }

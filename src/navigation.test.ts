@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import type { UserDto } from './api/types'
-import { homePathFor, isCarrierOnly, isCustomerOnly, isSupplierOnly, mayOpen, sidebarLinks } from './navigation'
+import {
+  homePathFor,
+  isCarrierOnly,
+  isCustomerOnly,
+  isSupplierOnly,
+  mayOpen,
+  sidebarLinks,
+} from './navigation'
 
 const user = (...roles: string[]): UserDto => ({
   id: 1,
@@ -40,8 +47,18 @@ describe('sidebarLinks for everybody else is what it was', () => {
 
   it('a warehouse worker sees the warehouse pages', () => {
     expect(labels('WAREHOUSE')).toEqual([
-      'Orders', 'New orders', 'Picking orders', 'Order items', 'Packable items', 'Packages', 'Containers',
-      'Storehouses', 'Products', 'Components', 'Stock', 'Request Components',
+      'Orders',
+      'New orders',
+      'Picking orders',
+      'Order items',
+      'Packable items',
+      'Packages',
+      'Containers',
+      'Storehouses',
+      'Products',
+      'Components',
+      'Stock',
+      'Request Components',
     ])
   })
 
@@ -58,8 +75,20 @@ describe('sidebarLinks for everybody else is what it was', () => {
 
   it('an admin sees every page but Create order', () => {
     expect(labels('ADMIN')).toEqual([
-      'Orders', 'New orders', 'Picking orders', 'Order items', 'Packable items', 'Packages', 'Containers',
-      'Shippable Items', 'Shipments', 'Storehouses', 'Products', 'Components', 'Stock', 'Request Components',
+      'Orders',
+      'New orders',
+      'Picking orders',
+      'Order items',
+      'Packable items',
+      'Packages',
+      'Containers',
+      'Shippable Items',
+      'Shipments',
+      'Storehouses',
+      'Products',
+      'Components',
+      'Stock',
+      'Request Components',
     ])
   })
 
@@ -71,7 +100,7 @@ describe('sidebarLinks for everybody else is what it was', () => {
     }
   })
 
-  it('My Requests is the supplier\'s own page, last in the list and for nobody else', () => {
+  it("My Requests is the supplier's own page, last in the list and for nobody else", () => {
     expect(labels('SUPPLIER').at(-1)).toBe('My Requests')
     for (const role of ['ADMIN', 'WAREHOUSE', 'MANAGER', 'LOGISTICS', 'CUSTOMER', 'DISTRIBUTOR']) {
       expect(labels(role)).not.toContain('My Requests')
@@ -102,11 +131,17 @@ describe('sidebarLinks for everybody else is what it was', () => {
   })
 
   it('a supplier with another role as well sees the pages of that role too', () => {
-    expect(labels('SUPPLIER', 'WAREHOUSE')).toEqual(expect.arrayContaining(['Picking orders', 'My Requests']))
+    expect(labels('SUPPLIER', 'WAREHOUSE')).toEqual(
+      expect.arrayContaining(['Picking orders', 'My Requests']),
+    )
   })
 
   it('hands out no internal flag with the link', () => {
-    expect(Object.keys(sidebarLinks(user('ADMIN'))[0] ?? {}).sort()).toEqual(['icon', 'label', 'to'])
+    expect(Object.keys(sidebarLinks(user('ADMIN'))[0] ?? {}).sort()).toEqual([
+      'icon',
+      'label',
+      'to',
+    ])
   })
 })
 
@@ -186,7 +221,15 @@ describe('mayOpen', () => {
   })
 
   it('keeps a customer from every other page, new orders included', () => {
-    for (const path of ['/', '/orders/new', '/orders/new/1042', '/products', '/shipments', '/storehouses', '/stock/storehouse/1']) {
+    for (const path of [
+      '/',
+      '/orders/new',
+      '/orders/new/1042',
+      '/products',
+      '/shipments',
+      '/storehouses',
+      '/stock/storehouse/1',
+    ]) {
       expect(mayOpen(user('CUSTOMER'), path)).toBe(false)
     }
   })

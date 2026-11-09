@@ -1,10 +1,16 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_SHIPMENT_PACKAGE_STATUS, fetchShipmentPackages, SHIPMENT_PACKAGE_STATUSES } from './shipmentPackages'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
+import {
+  DEFAULT_SHIPMENT_PACKAGE_STATUS,
+  fetchShipmentPackages,
+  SHIPMENT_PACKAGE_STATUSES,
+} from './shipmentPackages'
 
 afterEach(() => vi.unstubAllGlobals())
 
 function stubbed() {
-  const fetchMock = vi.fn().mockResolvedValue(new Response('{"content":[],"total":0,"page":0,"size":25}', { status: 200 }))
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue(new Response('{"content":[],"total":0,"page":0,"size":25}', { status: 200 }))
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }

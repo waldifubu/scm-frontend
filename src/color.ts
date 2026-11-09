@@ -37,7 +37,11 @@ function onWhite(color: string): [number, number, number] | null {
   context2d.fillRect(0, 0, 1, 1)
   const [red, green, blue, alpha] = context2d.getImageData(0, 0, 1, 1).data
   const opacity = alpha / 255
-  return [red, green, blue].map((channel) => channel * opacity + 255 * (1 - opacity)) as [number, number, number]
+  return [red, green, blue].map((channel) => channel * opacity + 255 * (1 - opacity)) as [
+    number,
+    number,
+    number,
+  ]
 }
 
 /** WCAG relative luminance, 0 (black) to 1 (white). */

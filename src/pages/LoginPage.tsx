@@ -11,6 +11,12 @@ import { safeRedirect } from '../redirect'
  * alike), so neither does this. A 403 is an account that exists but may not log in; the server's own
  * words say whether it is disabled or locked.
  */
+/** A text field of the form; a missing one is empty, not the word "null". */
+function field(data: FormData, name: string): string {
+  const value = data.get(name)
+  return typeof value === 'string' ? value : ''
+}
+
 function describe(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 401) return 'Wrong username, e-mail address or password.'
@@ -32,7 +38,10 @@ export function LoginPage() {
       await login(credentials)
       // The login answer says who, but only as one role; /me is what the rest of the application reads.
       const me = await fetchMe()
-      if (!me) throw new Error('Logged in, but the server did not accept the session. Is the cookie blocked?')
+      if (!me)
+        throw new Error(
+          'Logged in, but the server did not accept the session. Is the cookie blocked?',
+        )
       return me
     },
     onSuccess: (me) => {
@@ -55,8 +64,8 @@ export function LoginPage() {
     }
     const data = new FormData(form)
     signIn.mutate({
-      usernameOrEmail: String(data.get('usernameOrEmail')).trim(),
-      password: String(data.get('password')),
+      usernameOrEmail: field(data, 'usernameOrEmail').trim(),
+      password: field(data, 'password'),
     })
   }
 
@@ -73,7 +82,11 @@ export function LoginPage() {
             </div>
           )}
 
-          <form noValidate className={validated ? 'was-validated' : undefined} onSubmit={handleSubmit}>
+          <form
+            noValidate
+            className={validated ? 'was-validated' : undefined}
+            onSubmit={handleSubmit}
+          >
             <div className="mb-3">
               <label htmlFor="usernameOrEmail" className="form-label">
                 Username or e-mail
@@ -107,7 +120,9 @@ export function LoginPage() {
             </div>
 
             <button type="submit" className="btn btn-primary w-100" disabled={signIn.isPending}>
-              {signIn.isPending && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />}
+              {signIn.isPending && (
+                <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+              )}
               Sign in
             </button>
           </form>

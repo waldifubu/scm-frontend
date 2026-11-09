@@ -5,7 +5,8 @@ export function formatMoment(value: string | null | undefined): string {
 
 /** A product as a person names it: its name with the article number in brackets. Whichever is missing is left out. */
 export function productLabel(name: unknown, articleNo: unknown): string {
-  const text = (value: unknown) => (typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '')
+  const text = (value: unknown) =>
+    typeof value === 'string' || typeof value === 'number' ? String(value).trim() : ''
   const label = text(name)
   const number = text(articleNo)
   if (label && number) return `${label} (${number})`
@@ -33,14 +34,32 @@ export function formatCubicMeters(cubicCentimeters: number | null | undefined): 
 }
 
 /** `length × width × height`, with the parts that are known; none known is an empty cell. */
-export function formatDimensions(length?: number | null, width?: number | null, height?: number | null): string {
+export function formatDimensions(
+  length?: number | null,
+  width?: number | null,
+  height?: number | null,
+): string {
   const parts = [length, width, height]
   if (parts.every((part) => part === null || part === undefined)) return ''
-  return parts.map((part) => (part === null || part === undefined ? '?' : formatNumber(part))).join(' × ')
+  return parts
+    .map((part) => (part === null || part === undefined ? '?' : formatNumber(part)))
+    .join(' × ')
 }
 
 /** A free text cut to its first `max` characters and an ellipsis; a short one is left as it is. */
 export function shorten(value: string | null | undefined, max = 20): string {
   if (!value) return ''
   return value.length > max ? `${value.slice(0, max)}…` : value
+}
+
+/**
+ * Any value as the text of a table cell: nothing is an empty cell, text and numbers are shown as they are, and an
+ * object as JSON. One place for it - every page had its own copy of this.
+ */
+export function cell(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint')
+    return String(value)
+  return JSON.stringify(value)
 }

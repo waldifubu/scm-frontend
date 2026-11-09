@@ -45,7 +45,8 @@ export const DEFAULT_ORDER_STATUS: OrderStatus = 'CREATED'
 export const ordersPath = (page = 0, status?: OrderStatus) =>
   withPage(status ? `/orders?status=${encodeURIComponent(status)}` : '/orders', page)
 
-export const fetchOrders = (page = 0, status?: OrderStatus) => fetchOrderPage(ordersPath(page, status))
+export const fetchOrders = (page = 0, status?: OrderStatus) =>
+  fetchOrderPage(ordersPath(page, status))
 
 export const ordersQueryOptions = (page = 0, status?: OrderStatus) =>
   queryOptions({
@@ -72,9 +73,12 @@ export const newOrderQueryOptions = (page = 0) =>
   })
 
 async function postOrderAction(orderNumber: string, action: string): Promise<string> {
-  const body = await api<{ message?: unknown }>(`/orders/${encodeURIComponent(orderNumber)}/${action}`, {
-    method: 'POST',
-  })
+  const body = await api<{ message?: unknown }>(
+    `/orders/${encodeURIComponent(orderNumber)}/${action}`,
+    {
+      method: 'POST',
+    },
+  )
   return typeof body?.message === 'string' ? body.message : ''
 }
 
@@ -86,9 +90,13 @@ export const checkOrder = (orderNumber: string) => postOrderAction(orderNumber, 
  * was nothing to reserve.
  */
 export async function reserveOrder(orderNumber: string): Promise<string> {
-  const body = await api<unknown[]>(`/orders/${encodeURIComponent(orderNumber)}/reserve`, { method: 'POST' })
+  const body = await api<unknown[]>(`/orders/${encodeURIComponent(orderNumber)}/reserve`, {
+    method: 'POST',
+  })
   const reserved = Array.isArray(body) ? body : []
-  return reserved.length === 0 ? 'Nothing to reserve. Try again later' : `Reserved ${reserved.length} item(s).`
+  return reserved.length === 0
+    ? 'Nothing to reserve. Try again later'
+    : `Reserved ${reserved.length} item(s).`
 }
 
 export interface NewOrderItem {

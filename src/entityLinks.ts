@@ -9,7 +9,8 @@ export type EntityLink = { kind: 'order'; orderNo: string } | { kind: 'sku'; sku
  */
 export function entityLinkOf(column: string, value: unknown): EntityLink | null {
   if (column === 'orderNo') {
-    const orderNo = typeof value === 'number' || typeof value === 'string' ? String(value).trim() : ''
+    const orderNo =
+      typeof value === 'number' || typeof value === 'string' ? String(value).trim() : ''
     return /^\d+$/.test(orderNo) ? { kind: 'order', orderNo } : null
   }
   if (column === 'sku') {
@@ -24,7 +25,9 @@ export function entityLinkOf(column: string, value: unknown): EntityLink | null 
  * by, and the SKU behind it for a tooltip. `null` for a line without a usable article number, so it stays plain
  * text - and the SKU is left out, not blank, when the line carries none.
  */
-export function productLinkOf(line: Record<string, unknown>): { articleNo: string; sku?: string } | null {
+export function productLinkOf(
+  line: Record<string, unknown>,
+): { articleNo: string; sku?: string } | null {
   const raw = line.articleNo
   const articleNo = typeof raw === 'number' || typeof raw === 'string' ? String(raw).trim() : ''
   if (!/^\d+$/.test(articleNo)) return null

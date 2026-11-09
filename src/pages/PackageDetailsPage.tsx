@@ -2,16 +2,16 @@ import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { packageQueryOptions, type PackageDto } from '../api/packages'
 import { LinkedValue } from './EntityLinkAnchor'
+import { cell } from '../format'
 
 const route = getRouteApi('/authed/packages/$packageId')
 
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
-
 function isRowList(value: unknown): value is PackageDto[] {
-  return Array.isArray(value) && value.length > 0 && value.every((row) => typeof row === 'object' && row !== null)
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((row) => typeof row === 'object' && row !== null)
+  )
 }
 
 /** A sibling is a package id, or an object that holds one. */

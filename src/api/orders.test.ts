@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { DEFAULT_ORDER_STATUS, ORDER_STATUSES, ordersPath } from './orders'
 
 describe('ordersPath', () => {
@@ -21,8 +21,19 @@ describe('ORDER_STATUSES', () => {
   it('holds the statuses of the backend enum, each once', () => {
     expect([...ORDER_STATUSES].sort()).toEqual(
       [
-        'ACKNOWLEDGED', 'APPROVED', 'CANCELLED', 'COMPLETED', 'CREATED', 'DELIVERED', 'IN_FULFILLMENT',
-        'IN_TRANSIT', 'PARTIALLY_DELIVERED', 'READY_FOR_DISPATCH', 'REJECTED', 'REVIEW', 'WAIT_SUPPLY',
+        'ACKNOWLEDGED',
+        'APPROVED',
+        'CANCELLED',
+        'COMPLETED',
+        'CREATED',
+        'DELIVERED',
+        'IN_FULFILLMENT',
+        'IN_TRANSIT',
+        'PARTIALLY_DELIVERED',
+        'READY_FOR_DISPATCH',
+        'REJECTED',
+        'REVIEW',
+        'WAIT_SUPPLY',
       ].sort(),
     )
     expect(new Set(ORDER_STATUSES).size).toBe(ORDER_STATUSES.length)

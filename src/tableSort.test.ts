@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { nextSort, sortRows } from './tableSort'
 
 const rows = [
@@ -12,7 +12,10 @@ const ids = (sorted: { id: number }[]) => sorted.map((row) => row.id)
 describe('nextSort', () => {
   it('starts ascending on a column that is not sorted by', () => {
     expect(nextSort(null, 'id')).toEqual({ column: 'id', direction: 'asc' })
-    expect(nextSort({ column: 'sku', direction: 'desc' }, 'id')).toEqual({ column: 'id', direction: 'asc' })
+    expect(nextSort({ column: 'sku', direction: 'desc' }, 'id')).toEqual({
+      column: 'id',
+      direction: 'asc',
+    })
   })
 
   it('flips the same column to descending, then takes the sort away', () => {
@@ -44,13 +47,22 @@ describe('sortRows', () => {
 
   it('orders text without regard to case', () => {
     expect(rows.length).toBe(3)
-    expect(sortRows(rows, { column: 'sku', direction: 'asc' }).map((row) => row.sku)).toEqual(['a', 'b', 'C'])
+    expect(sortRows(rows, { column: 'sku', direction: 'asc' }).map((row) => row.sku)).toEqual([
+      'a',
+      'b',
+      'C',
+    ])
   })
 
   it('reads digits inside text as numbers', () => {
-    const named = [{ id: 1, name: 'Lager 10' }, { id: 2, name: 'Lager 9' }]
+    const named = [
+      { id: 1, name: 'Lager 10' },
+      { id: 2, name: 'Lager 9' },
+    ]
 
-    expect(sortRows(named, { column: 'name', direction: 'asc' }).map((row) => row.id)).toEqual([2, 1])
+    expect(sortRows(named, { column: 'name', direction: 'asc' }).map((row) => row.id)).toEqual([
+      2, 1,
+    ])
   })
 
   it('puts rows without a value last whichever way it runs', () => {
@@ -61,7 +73,11 @@ describe('sortRows', () => {
   })
 
   it('keeps rows that compare equal in the order they had', () => {
-    const ties = [{ id: 1, g: 'x' }, { id: 2, g: 'y' }, { id: 3, g: 'x' }]
+    const ties = [
+      { id: 1, g: 'x' },
+      { id: 2, g: 'y' },
+      { id: 3, g: 'x' },
+    ]
 
     expect(ids(sortRows(ties, { column: 'g', direction: 'asc' }))).toEqual([1, 3, 2])
   })

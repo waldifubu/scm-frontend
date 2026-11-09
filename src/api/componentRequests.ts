@@ -2,7 +2,15 @@ import { queryOptions } from '@tanstack/react-query'
 import { api } from './client'
 
 /** The statuses a component request goes through, as the backend names them. */
-export const REQUEST_STATUSES = ['OPEN', 'APPROVED', 'IN_TRANSIT', 'DELIVERED', 'IN_STOCK', 'REJECTED', 'CANCELLED'] as const
+export const REQUEST_STATUSES = [
+  'OPEN',
+  'APPROVED',
+  'IN_TRANSIT',
+  'DELIVERED',
+  'IN_STOCK',
+  'REJECTED',
+  'CANCELLED',
+] as const
 
 /** One placed component request (`RequestComponentResponse`); the keys the backend leaves out while empty are optional. */
 export interface ComponentRequestRow {

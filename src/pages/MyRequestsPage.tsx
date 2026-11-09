@@ -21,7 +21,8 @@ export function MyRequestsPage() {
   const [asking, setAsking] = useState<{ row: MyRequestRow; entry: RowAction } | null>(null)
   const [notice, setNotice] = useState<{ text: string; failed: boolean } | null>(null)
   const answer = useMutation({
-    mutationFn: ({ row, entry }: { row: MyRequestRow; entry: RowAction }) => answerRequest(row.id, entry.action),
+    mutationFn: ({ row, entry }: { row: MyRequestRow; entry: RowAction }) =>
+      answerRequest(row.id, entry.action),
     onSuccess: async (_result, { row, entry }) => {
       setNotice({ text: `Request ${row.id}: ${entry.label.toLowerCase()} done.`, failed: false })
       setAsking(null)
@@ -74,9 +75,13 @@ export function MyRequestsPage() {
                   <td className="font-monospace small">{row.component?.sku ?? ''}</td>
                   <td className="text-end">{row.qty}</td>
                   {/* The first 20 characters; the whole comment is the tooltip once it was cut. */}
-                  <td title={row.comment && row.comment.length > 20 ? row.comment : undefined}>{shorten(row.comment)}</td>
+                  <td title={row.comment && row.comment.length > 20 ? row.comment : undefined}>
+                    {shorten(row.comment)}
+                  </td>
                   <td>
-                    <span className={requestStatusClass(row.requestStatus)}>{row.requestStatus}</span>
+                    <span className={requestStatusClass(row.requestStatus)}>
+                      {row.requestStatus}
+                    </span>
                   </td>
                   <td className="text-nowrap">
                     <small className="text-body-secondary">{formatMoment(row.requestDate)}</small>
@@ -104,7 +109,9 @@ export function MyRequestsPage() {
         </div>
       )}
       <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
-        {notice && <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>}
+        {notice && (
+          <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>
+        )}
       </div>
       {asking && (
         <ConfirmModal
@@ -115,7 +122,9 @@ export function MyRequestsPage() {
           onConfirm={() => answer.mutate(asking)}
           onCancel={() => setAsking(null)}
         >
-          {asking.entry.action === 'reject' ? 'The request is declined and cannot be taken on again.' : 'The request is called off and cannot be taken on again.'}
+          {asking.entry.action === 'reject'
+            ? 'The request is declined and cannot be taken on again.'
+            : 'The request is called off and cannot be taken on again.'}
         </ConfirmModal>
       )}
     </div>

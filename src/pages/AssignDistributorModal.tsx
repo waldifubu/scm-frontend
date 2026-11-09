@@ -66,7 +66,13 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
               <h2 className="modal-title h5" id={titleId}>
                 Assign distributor to shipment {shipment.id}
               </h2>
-              <button type="button" className="btn-close" aria-label="Close" onClick={onClose} disabled={assign.isPending} />
+              <button
+                type="button"
+                className="btn-close"
+                aria-label="Close"
+                onClick={onClose}
+                disabled={assign.isPending}
+              />
             </div>
             <div className="modal-body">
               {assign.error && (
@@ -76,13 +82,16 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
               )}
               {data?.fallback && (
                 <p className="small text-body-secondary">
-                  No rule names a distributor for this shipment - choose among all active distributors.
+                  No rule names a distributor for this shipment - choose among all active
+                  distributors.
                 </p>
               )}
               {isPending && <p className="mb-0">Loading distributors…</p>}
               {error && <p className="mb-0 text-danger">{error.message}</p>}
               {data && distributors.length === 0 && (
-                <p className="mb-0 text-body-secondary">There is no active distributor to hand the shipment to.</p>
+                <p className="mb-0 text-body-secondary">
+                  There is no active distributor to hand the shipment to.
+                </p>
               )}
               {distributors.length > 0 && (
                 <div className="table-responsive">
@@ -105,7 +114,9 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
                             <td className="text-nowrap">
                               {displayName(distributor)}
                               {current && (
-                                <span className={`badge ms-2 ${shipment.status === 'DECLINED' ? 'text-bg-danger' : 'text-bg-secondary'}`}>
+                                <span
+                                  className={`badge ms-2 ${shipment.status === 'DECLINED' ? 'text-bg-danger' : 'text-bg-secondary'}`}
+                                >
                                   {shipment.status === 'DECLINED' ? 'declined' : 'assigned'}
                                 </span>
                               )}
@@ -121,7 +132,9 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
                                 disabled={current || assign.isPending}
                                 onClick={() => assign.mutate(distributor.id)}
                               >
-                                {assign.isPending && assign.variables === distributor.id ? 'Assigning…' : 'Assign'}
+                                {assign.isPending && assign.variables === distributor.id
+                                  ? 'Assigning…'
+                                  : 'Assign'}
                               </button>
                             </td>
                           </tr>
@@ -138,7 +151,12 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
                   ? `Showing ${distributors.length} of ${data.total} distributors.`
                   : `${distributors.length} active distributor${distributors.length === 1 ? '' : 's'}.`}
               </span>
-              <button type="button" className="btn btn-outline-secondary" onClick={onClose} disabled={assign.isPending}>
+              <button
+                type="button"
+                className="btn btn-outline-secondary"
+                onClick={onClose}
+                disabled={assign.isPending}
+              >
                 Cancel
               </button>
             </div>

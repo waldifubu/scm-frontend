@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from './client'
 import { withPage } from './pageQuery'
+import { cell } from '../format'
 
 /** A package as the backend sends it. Its fields are not typed yet, so the table reads them as they come. */
 export type PackageDto = Record<string, unknown>
@@ -47,7 +48,12 @@ export const packagesQueryOptions = (filter: PackageFilter = {}) =>
 
 /** `GET /lonely-packages` for a page and a fulfillment status (none: every loose item). */
 export const lonelyPackagesPath = (page = 0, fulfillmentStatus?: string) =>
-  withPage(fulfillmentStatus ? `/lonely-packages?fulfillmentStatus=${encodeURIComponent(fulfillmentStatus)}` : '/lonely-packages', page)
+  withPage(
+    fulfillmentStatus
+      ? `/lonely-packages?fulfillmentStatus=${encodeURIComponent(fulfillmentStatus)}`
+      : '/lonely-packages',
+    page,
+  )
 
 /** `GET /lonely-packages`: the same package listing, of the packages without siblings. */
 export const lonelyPackagesQueryOptions = (page = 0, fulfillmentStatus?: string) =>
@@ -61,11 +67,19 @@ export const lonelyPackagesQueryOptions = (page = 0, fulfillmentStatus?: string)
  * already stay, so a repeated call changes nothing. A refusal (an item in another container, items of two orders, a
  * container that is no longer OPEN) arrives as an error whose message `api` already reads.
  */
-export async function addItemsToContainer(shipmentPackageId: number, packageItemIds: number[]): Promise<string> {
-  const body = await api<{ message?: unknown; id?: unknown; packageNumber?: unknown; items?: unknown } | null>(
-    `/packing/shipment/${encodeURIComponent(String(shipmentPackageId))}/items`,
-    { method: 'POST', body: JSON.stringify({ packageItemIds }) },
-  )
+export async function addItemsToContainer(
+  shipmentPackageId: number,
+  packageItemIds: number[],
+): Promise<string> {
+  const body = await api<{
+    message?: unknown
+    id?: unknown
+    packageNumber?: unknown
+    items?: unknown
+  } | null>(`/packing/shipment/${encodeURIComponent(String(shipmentPackageId))}/items`, {
+    method: 'POST',
+    body: JSON.stringify({ packageItemIds }),
+  })
   if (typeof body?.message === 'string') return body.message
   const name =
     typeof body?.packageNumber === 'string' && body.packageNumber !== ''
@@ -94,10 +108,13 @@ export interface ShipmentFromItems {
 
 /** `POST /packing/shipment/from-items`: creates a shipment package from the given package items. */
 export async function createShipmentPackage(request: ShipmentFromItems): Promise<string> {
-  const body = await api<{ message?: unknown; id?: unknown } | null>('/packing/shipment/from-items', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
+  const body = await api<{ message?: unknown; id?: unknown } | null>(
+    '/packing/shipment/from-items',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+  )
   if (typeof body?.message === 'string') return body.message
-  return body?.id != null ? `Container ${String(body.id)} created.` : 'Container created.'
+  return body?.id != null ? `Container ${cell(body.id)} created.` : 'Container created.'
 }

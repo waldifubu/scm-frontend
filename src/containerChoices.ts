@@ -48,7 +48,12 @@ export function containerChoices(rows: readonly ShipmentPackageDto[]): Container
       packageNumber: text(row.packageNumber),
       type: text(row.type),
       orderNo: orderNumbers(row.items),
-      packages: typeof row.packages === 'number' ? row.packages : Array.isArray(row.items) ? row.items.length : 0,
+      packages:
+        typeof row.packages === 'number'
+          ? row.packages
+          : Array.isArray(row.items)
+            ? row.items.length
+            : 0,
       weight: numberOrNull(row.weight),
       volume: numberOrNull(row.volume),
     })
@@ -62,7 +67,10 @@ export function containerChoices(rows: readonly ShipmentPackageDto[]): Container
  * chosen yet leaves every container open; items of two orders fit none that holds something, and an empty
  * container takes only one order's items, so it is refused as well (the backend would answer 400).
  */
-export function containerFits(choice: Pick<ContainerChoice, 'orderNo'>, chosenOrders: readonly string[]): boolean {
+export function containerFits(
+  choice: Pick<ContainerChoice, 'orderNo'>,
+  chosenOrders: readonly string[],
+): boolean {
   const orders = new Set(chosenOrders.filter((orderNo) => orderNo !== ''))
   if (orders.size === 0) return true
   if (orders.size > 1) return false

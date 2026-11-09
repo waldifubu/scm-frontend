@@ -1,5 +1,11 @@
 import type { QueryClient } from '@tanstack/react-query'
-import { createRootRouteWithContext, createRoute, createRouter, Outlet, redirect } from '@tanstack/react-router'
+import {
+  createRootRouteWithContext,
+  createRoute,
+  createRouter,
+  Outlet,
+  redirect,
+} from '@tanstack/react-router'
 import { meQueryOptions } from './api/auth'
 import { homePathFor, mayOpen } from './navigation'
 import { queryClient } from './queryClient'
@@ -73,7 +79,10 @@ const authedRoute = createRoute({
   beforeLoad: async ({ context, location }) => {
     const user = await context.queryClient.ensureQueryData(meQueryOptions)
     if (!user) {
-      throw redirect({ to: '/login', search: location.href === '/' ? {} : { redirect: location.href } })
+      throw redirect({
+        to: '/login',
+        search: location.href === '/' ? {} : { redirect: location.href },
+      })
     }
     // A customer has two pages; any other address, typed or followed, leads to their orders.
     if (!mayOpen(user, location.pathname)) throw redirect({ to: homePathFor(user) })
@@ -257,28 +266,28 @@ const productEditRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-    loginRoute,
-    authedRoute.addChildren([
-        indexRoute,
-        orderItemsRoute,
-        packableItemsRoute,
-        shipmentPackagesRoute.addChildren([shipmentPackageDetailsRoute]),
-        shippableItemsRoute.addChildren([shippableDetailsRoute]),
-        shipmentsRoute.addChildren([shipmentDetailsRoute]),
-        packagesRoute.addChildren([packageDetailsRoute]),
-        pickingOrdersRoute,
-        createOrderRoute,
-        storehousesRoute,
-        requestsRoute,
-        myRequestsRoute,
-        stockOverviewRoute,
-        stockRoute,
-        componentsRoute.addChildren([componentDetailsRoute]),
-        productsRoute.addChildren([productDetailsRoute, productSkuRoute, productEditRoute]),
-        ordersRoute.addChildren([orderDetailsRoute]),
-        newOrderRoute.addChildren([newOrderDetailsRoute])
-    ])]
-)
+  loginRoute,
+  authedRoute.addChildren([
+    indexRoute,
+    orderItemsRoute,
+    packableItemsRoute,
+    shipmentPackagesRoute.addChildren([shipmentPackageDetailsRoute]),
+    shippableItemsRoute.addChildren([shippableDetailsRoute]),
+    shipmentsRoute.addChildren([shipmentDetailsRoute]),
+    packagesRoute.addChildren([packageDetailsRoute]),
+    pickingOrdersRoute,
+    createOrderRoute,
+    storehousesRoute,
+    requestsRoute,
+    myRequestsRoute,
+    stockOverviewRoute,
+    stockRoute,
+    componentsRoute.addChildren([componentDetailsRoute]),
+    productsRoute.addChildren([productDetailsRoute, productSkuRoute, productEditRoute]),
+    ordersRoute.addChildren([orderDetailsRoute]),
+    newOrderRoute.addChildren([newOrderDetailsRoute]),
+  ]),
+])
 
 export const router = createRouter({
   routeTree,

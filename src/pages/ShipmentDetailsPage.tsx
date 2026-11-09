@@ -38,14 +38,18 @@ export function ShipmentDetailsPage() {
   const [notice, setNotice] = useState<string | null>(null)
   const [dataNotice, setDataNotice] = useState<string | null>(null)
 
-  const items = (shipment?.packages ?? []).flatMap((pack) => pack.items.map((item) => ({ pack, item })))
+  const items = (shipment?.packages ?? []).flatMap((pack) =>
+    pack.items.map((item) => ({ pack, item })),
+  )
 
   return (
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5 d-flex align-items-center gap-2">
           Shipment {shipmentId}
-          {shipment && <span className={`badge ${statusBadgeClass(shipment.status)}`}>{shipment.status}</span>}
+          {shipment && (
+            <span className={`badge ${statusBadgeClass(shipment.status)}`}>{shipment.status}</span>
+          )}
         </h3>
         {isPending && <p className="mb-0">Loading details…</p>}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
@@ -62,7 +66,13 @@ export function ShipmentDetailsPage() {
 
             {/* Keyed by what the shipment holds, so a change made elsewhere (a reload, another tab) replaces what is typed. */}
             <ShipmentDataForm
-              key={[shipment.status, shipment.shippingAddress, shipment.shippingMethod, shipment.requestedDeliveryDate, shipment.comment].join('\u0000')}
+              key={[
+                shipment.status,
+                shipment.shippingAddress,
+                shipment.shippingMethod,
+                shipment.requestedDeliveryDate,
+                shipment.comment,
+              ].join('\u0000')}
               shipment={shipment}
               notice={dataNotice}
               onNotice={setDataNotice}
@@ -95,7 +105,9 @@ export function ShipmentDetailsPage() {
                           <td>{pack.packageNumber ?? ''}</td>
                           <td>{pack.status}</td>
                           <td>{pack.type ?? ''}</td>
-                          <td className="text-nowrap">{formatDimensions(pack.length, pack.width, pack.height)}</td>
+                          <td className="text-nowrap">
+                            {formatDimensions(pack.length, pack.width, pack.height)}
+                          </td>
                           <td className="text-end">{formatNumber(pack.weight)}</td>
                           <td className="text-end">{formatCubicMeters(pack.volume)}</td>
                           <td className="text-end">{pack.items.length}</td>
@@ -153,7 +165,11 @@ export function ShipmentDetailsPage() {
                 <button
                   type="button"
                   className="btn btn-success"
-                  disabled={ready.isPending || !shipment.shippingAddress?.trim() || shipment.packages.length === 0}
+                  disabled={
+                    ready.isPending ||
+                    !shipment.shippingAddress?.trim() ||
+                    shipment.packages.length === 0
+                  }
                   title={
                     !shipment.shippingAddress?.trim()
                       ? 'A shipment needs a shipping address before it can be reported ready - add it under "edit data".'
@@ -207,17 +223,25 @@ export function ShipmentDetailsPage() {
                 confirmLabel="Report ready"
                 busy={ready.isPending}
                 onCancel={() => setAskingReady(false)}
-                onConfirm={() => ready.mutate(undefined, { onSettled: () => setAskingReady(false) })}
+                onConfirm={() =>
+                  ready.mutate(undefined, { onSettled: () => setAskingReady(false) })
+                }
               >
-                Report shipment {shipment.id} ready? The order lines in its {shipment.packages.length} package
-                {shipment.packages.length === 1 ? '' : 's'} move on to READY_FOR_DISPATCH, and so do the orders once all
-                their lines are in a ready shipment. Packages can no longer be added or taken out after this.
+                Report shipment {shipment.id} ready? The order lines in its{' '}
+                {shipment.packages.length} package
+                {shipment.packages.length === 1 ? '' : 's'} move on to READY_FOR_DISPATCH, and so do
+                the orders once all their lines are in a ready shipment. Packages can no longer be
+                added or taken out after this.
               </ConfirmModal>
             )}
             {assigning && (
               <AssignDistributorModal
                 shipment={shipment}
-                query={{ customerId: shipment.customerId, weight: shipment.weight, volume: totalVolume(shipment.packages) }}
+                query={{
+                  customerId: shipment.customerId,
+                  weight: shipment.weight,
+                  volume: totalVolume(shipment.packages),
+                }}
                 onClose={() => setAssigning(false)}
                 onAssigned={(message) => {
                   setAssigning(false)

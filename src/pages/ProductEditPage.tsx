@@ -4,14 +4,11 @@ import { useEffect, useState, type SubmitEventHandler } from 'react'
 import { meQueryOptions } from '../api/auth'
 import { productQueryOptions, updateProduct, type ProductDto } from '../api/products'
 import { hasRole } from '../api/types'
+import { cell as text } from '../format'
 
 const route = getRouteApi('/authed/products/$articleNo/edit')
 
 const MESSAGE_SECONDS = 5
-
-function text(value: unknown): string {
-  return value === null || value === undefined ? '' : String(value)
-}
 
 function ProductForm({ articleNo, product }: { articleNo: string; product: ProductDto }) {
   const queryClient = useQueryClient()
@@ -141,7 +138,9 @@ export function ProductEditPage() {
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5">Edit product {articleNo}</h3>
-        {user && !hasRole(user, 'MANAGER') && <p className="mb-0 text-danger">Only managers may change a product.</p>}
+        {user && !hasRole(user, 'MANAGER') && (
+          <p className="mb-0 text-danger">Only managers may change a product.</p>
+        )}
         {user && hasRole(user, 'MANAGER') && (
           <>
             {isPending && <p className="mb-0">Loading…</p>}

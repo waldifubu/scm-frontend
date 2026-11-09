@@ -25,7 +25,9 @@ export function StockInventoryCard() {
       </div>
       {isPending && <p className="p-3 mb-0">Loading stock…</p>}
       {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
-      {data && data.content.length === 0 && <p className="p-3 mb-0 text-body-secondary">Nothing in stock.</p>}
+      {data && data.content.length === 0 && (
+        <p className="p-3 mb-0 text-body-secondary">Nothing in stock.</p>
+      )}
       {data && data.content.length > 0 && (
         <>
           <div className="table-responsive">
@@ -33,23 +35,53 @@ export function StockInventoryCard() {
               <thead>
                 <tr>
                   <SortableHeader label="SKU" column="sku" sort={sort} onSort={sortBy} />
-                  <SortableHeader label="On hand" column="onHand" sort={sort} onSort={sortBy} className="text-end" />
-                  <SortableHeader label="Reserved" column="reserved" sort={sort} onSort={sortBy} className="text-end" />
-                  <SortableHeader label="Available" column="available" sort={sort} onSort={sortBy} className="text-end" />
-                  <SortableHeader label="Updated" column="updatedAt" sort={sort} onSort={sortBy} className="ps-4" />
+                  <SortableHeader
+                    label="On hand"
+                    column="onHand"
+                    sort={sort}
+                    onSort={sortBy}
+                    className="text-end"
+                  />
+                  <SortableHeader
+                    label="Reserved"
+                    column="reserved"
+                    sort={sort}
+                    onSort={sortBy}
+                    className="text-end"
+                  />
+                  <SortableHeader
+                    label="Available"
+                    column="available"
+                    sort={sort}
+                    onSort={sortBy}
+                    className="text-end"
+                  />
+                  <SortableHeader
+                    label="Updated"
+                    column="updatedAt"
+                    sort={sort}
+                    onSort={sortBy}
+                    className="ps-4"
+                  />
                 </tr>
               </thead>
               <tbody>
                 {data.content.map((row) => (
                   <tr key={row.sku}>
                     <td>
-                      <Link to="/products/sku/$sku" params={{ sku: row.sku }} title={row.name ?? undefined}>
+                      <Link
+                        to="/products/sku/$sku"
+                        params={{ sku: row.sku }}
+                        title={row.name ?? undefined}
+                      >
                         {row.sku}
                       </Link>
                     </td>
                     <td className="text-end">{row.onHand}</td>
                     <td className="text-end">{row.reserved}</td>
-                    <td className={isSoldOut(row.available) ? 'text-end text-danger' : 'text-end'}>{row.available}</td>
+                    <td className={isSoldOut(row.available) ? 'text-end text-danger' : 'text-end'}>
+                      {row.available}
+                    </td>
                     <td className="ps-4">{formatMoment(row.updatedAt)}</td>
                   </tr>
                 ))}

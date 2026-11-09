@@ -24,7 +24,9 @@ export function Pager({
       >
         ‹
       </button>
-      <span aria-live="polite">Page {Math.min(Math.max(page, 0), nav.last) + 1} of {nav.pages}</span>
+      <span aria-live="polite">
+        Page {Math.min(Math.max(page, 0), nav.last) + 1} of {nav.pages}
+      </span>
       <button
         type="button"
         className="btn btn-outline-secondary btn-sm"

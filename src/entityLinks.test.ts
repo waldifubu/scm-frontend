@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { entityLinkOf, productLinkOf } from './entityLinks'
 
 describe('entityLinkOf', () => {
@@ -37,7 +37,10 @@ describe('entityLinkOf', () => {
 
 describe('productLinkOf', () => {
   it('takes the article number and the SKU of an order line', () => {
-    expect(productLinkOf({ id: 1, articleNo: 1004, sku: 'abc-123' })).toEqual({ articleNo: '1004', sku: 'abc-123' })
+    expect(productLinkOf({ id: 1, articleNo: 1004, sku: 'abc-123' })).toEqual({
+      articleNo: '1004',
+      sku: 'abc-123',
+    })
   })
 
   it('reads an article number sent as text too', () => {

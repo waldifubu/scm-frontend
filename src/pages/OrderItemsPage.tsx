@@ -1,6 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { ALL_STATUSES, ORDER_ITEM_STATUSES, orderItemsQueryOptions, type OrderItemFilter, type OrderItemStatus } from '../api/orderItems'
+import {
+  ALL_STATUSES,
+  ORDER_ITEM_STATUSES,
+  orderItemsQueryOptions,
+  type OrderItemFilter,
+  type OrderItemStatus,
+} from '../api/orderItems'
 import { OrderItemsTable } from './OrderItemsTable'
 import { PageTitle } from './PageTitle'
 
@@ -68,7 +74,13 @@ export function OrderItemsPage() {
           </select>
         </div>
       </div>
-      <OrderItemsTable data={data} isPending={isPending} error={error} itemType="order items" onPage={(next) => setPage(String(next))} />
+      <OrderItemsTable
+        data={data}
+        isPending={isPending}
+        error={error}
+        itemType="order items"
+        onPage={(next) => setPage(String(next))}
+      />
     </div>
   )
 }

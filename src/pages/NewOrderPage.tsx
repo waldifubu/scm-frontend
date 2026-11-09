@@ -4,11 +4,7 @@ import { Link, Outlet } from '@tanstack/react-router'
 import { checkOrder, newOrderQueryOptions, reserveOrder } from '../api/orders'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
+import { cell } from '../format'
 
 const MESSAGE_SECONDS = 5
 
@@ -102,7 +98,10 @@ function NewOrdersTable({ page, onPage }: { page: number; onPage: (page: number)
         <dd className="col-auto">{data.size}</dd>
       </dl>
       {notice && (
-        <p className={`px-3 pb-2 mb-0 text-md-start ${notice.failed ? 'text-danger' : 'text-success'}`} role="status">
+        <p
+          className={`px-3 pb-2 mb-0 text-md-start ${notice.failed ? 'text-danger' : 'text-success'}`}
+          role="status"
+        >
           {notice.text}
         </p>
       )}

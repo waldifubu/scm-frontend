@@ -1,12 +1,7 @@
 import type { ReactNode } from 'react'
 import type { OrderItemDto, OrderItemPage } from '../api/orderItems'
-import { productLabel } from '../format'
+import { productLabel, cell } from '../format'
 import { Pager } from './Pager'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
 
 // The name is shown with the article number, in that one column.
 const HIDDEN_COLUMNS = new Set(['productName', 'storehouseId', 'reservationId'])
@@ -22,7 +17,11 @@ function renderCell(column: string, item: OrderItemDto) {
   if (DATE_COLUMNS.has(column) && typeof value === 'string') {
     const date = new Date(value)
     if (!Number.isNaN(date.getTime())) {
-      return <small className="text-body-secondary text-nowrap">{date.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}</small>
+      return (
+        <small className="text-body-secondary text-nowrap">
+          {date.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}
+        </small>
+      )
     }
   }
   if (column === 'articleNo') return productLabel(item.productName, value)
@@ -53,7 +52,9 @@ export function OrderItemsTable({
   const items: OrderItemDto[] = data?.content ?? []
   if (items.length === 0) return <p className="p-3 mb-0 text-body-secondary">No {itemType}.</p>
 
-  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter((c) => !HIDDEN_COLUMNS.has(c))
+  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
+    (c) => !HIDDEN_COLUMNS.has(c),
+  )
 
   return (
     <>

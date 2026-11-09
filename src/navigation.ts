@@ -39,7 +39,15 @@ export type SidebarLink = {
 }
 
 /** Every role there is, as the backend names them. */
-const ALL_ROLES = ['CUSTOMER', 'MANAGER', 'SUPPLIER', 'WAREHOUSE', 'LOGISTICS', 'DISTRIBUTOR', 'ADMIN'] as const
+const ALL_ROLES = [
+  'CUSTOMER',
+  'MANAGER',
+  'SUPPLIER',
+  'WAREHOUSE',
+  'LOGISTICS',
+  'DISTRIBUTOR',
+  'ADMIN',
+] as const
 
 /**
  * Whether the user is a carrier and nothing else. Such a user works in one place - their own shipments -
@@ -68,7 +76,10 @@ export function isSupplierOnly(user: UserDto): boolean {
 }
 
 function holdsOnly(user: UserDto, role: (typeof ALL_ROLES)[number]): boolean {
-  return hasRole(user, role) && ALL_ROLES.filter((other) => other !== role).every((other) => !hasRole(user, other))
+  return (
+    hasRole(user, role) &&
+    ALL_ROLES.filter((other) => other !== role).every((other) => !hasRole(user, other))
+  )
 }
 
 /** The entries of the navigation, in order, that this user sees. */
@@ -77,10 +88,16 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
   // Shipments: the planning side sees them all, a carrier sees their own. The backend answers 403 to anybody else.
   // Shippable Items: the containers logistics may still put into a shipment (`GET /shipments/packages`).
   const seesShippable = hasRole(user, 'LOGISTICS') || hasRole(user, 'ADMIN')
-  const seesShipments = hasRole(user, 'LOGISTICS') || hasRole(user, 'ADMIN') || hasRole(user, 'DISTRIBUTOR')
+  const seesShipments =
+    hasRole(user, 'LOGISTICS') || hasRole(user, 'ADMIN') || hasRole(user, 'DISTRIBUTOR')
 
   const links: (SidebarLink & { visible: boolean })[] = [
-    { to: '/orders/create', label: 'Create order', icon: 'create-order', visible: hasRole(user, 'CUSTOMER') },
+    {
+      to: '/orders/create',
+      label: 'Create order',
+      icon: 'create-order',
+      visible: hasRole(user, 'CUSTOMER'),
+    },
     { to: '/orders', label: 'Orders', icon: 'orders', visible: true },
     { to: '/orders/new', label: 'New orders', icon: 'new-orders', visible: true },
     { to: '/picking-orders', label: 'Picking orders', icon: 'picking', visible: isWarehouse },
@@ -88,7 +105,12 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
     { to: '/order-items/packable', label: 'Packable items', icon: 'packable-items', visible: true },
     { to: '/packages', label: 'Packages', icon: 'packages', visible: true },
     { to: '/shipment-packages', label: 'Containers', icon: 'shipment-packages', visible: true },
-    { to: '/shippable-items', label: 'Shippable Items', icon: 'shippable-items', visible: seesShippable },
+    {
+      to: '/shippable-items',
+      label: 'Shippable Items',
+      icon: 'shippable-items',
+      visible: seesShippable,
+    },
     { to: '/shipments', label: 'Shipments', icon: 'shipments', visible: seesShipments },
     { to: '/storehouses', label: 'Storehouses', icon: 'storehouses', visible: isWarehouse },
     { to: '/products', label: 'Products', icon: 'products', visible: true },
@@ -97,7 +119,12 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
     // The component requests placed with suppliers (`GET /components/requests`): ADMIN and WAREHOUSE.
     { to: '/requests', label: 'Request Components', icon: 'requests', visible: isWarehouse },
     // The supplier's own requests (`GET /supplier/my-requests`). Not for the admin: the list is of the logged-in user, theirs is empty.
-    { to: '/my-requests', label: 'My Requests', icon: 'my-requests', visible: hasRole(user, 'SUPPLIER') },
+    {
+      to: '/my-requests',
+      label: 'My Requests',
+      icon: 'my-requests',
+      visible: hasRole(user, 'SUPPLIER'),
+    },
   ]
 
   const carrierOnly = isCarrierOnly(user)

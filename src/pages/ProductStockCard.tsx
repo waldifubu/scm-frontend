@@ -16,7 +16,9 @@ export function ProductStockCard({ sku }: { sku: string }) {
         <h3 className="h5">Stock</h3>
         {isPending && <p className="mb-0">Loading stock…</p>}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
-        {rows && rows.length === 0 && <p className="mb-0 text-body-secondary">Not in stock in any storehouse.</p>}
+        {rows && rows.length === 0 && (
+          <p className="mb-0 text-body-secondary">Not in stock in any storehouse.</p>
+        )}
         {rows && rows.length > 0 && (
           <div className="table-responsive">
             <table className="table table-striped table-sm mb-0">
@@ -47,7 +49,9 @@ export function ProductStockCard({ sku }: { sku: string }) {
                     </td>
                     <td className="text-end">{row.onHand}</td>
                     <td className="text-end">{row.reserved}</td>
-                    <td className={isSoldOut(row.available) ? 'text-end text-danger' : 'text-end'}>{row.available}</td>
+                    <td className={isSoldOut(row.available) ? 'text-end text-danger' : 'text-end'}>
+                      {row.available}
+                    </td>
                     <td className="ps-4">{formatMoment(row.updatedAt)}</td>
                   </tr>
                 ))}
@@ -58,7 +62,13 @@ export function ProductStockCard({ sku }: { sku: string }) {
                     <td>Total</td>
                     <td className="text-end">{stockTotals(rows).onHand}</td>
                     <td className="text-end">{stockTotals(rows).reserved}</td>
-                    <td className={isSoldOut(stockTotals(rows).available) ? 'text-end text-danger' : 'text-end'}>{stockTotals(rows).available}</td>
+                    <td
+                      className={
+                        isSoldOut(stockTotals(rows).available) ? 'text-end text-danger' : 'text-end'
+                      }
+                    >
+                      {stockTotals(rows).available}
+                    </td>
                     <td />
                   </tr>
                 </tfoot>

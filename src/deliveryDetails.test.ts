@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import type { DeliveryRow } from './api/shipments'
 import { deliveryFields } from './deliveryDetails'
 
@@ -33,13 +33,18 @@ describe('deliveryFields', () => {
   })
 
   it('leaves out a line with nothing in it', () => {
-    const labels = deliveryFields(row({ comment: null, shippingMethod: undefined, requestedDeliveryDate: null })).map(([label]) => label)
+    const labels = deliveryFields(
+      row({ comment: null, shippingMethod: undefined, requestedDeliveryDate: null }),
+    ).map(([label]) => label)
 
     expect(labels).toEqual(['customer', 'shippingAddress', 'createdAt', 'packageCount', 'weight'])
   })
 
   it('names the customer by name alone when the number is not known, and by number alone without a name', () => {
-    expect(deliveryFields(row({ customerId: undefined }))[0]).toEqual(['customer', 'Cuddy Customer Toyota'])
+    expect(deliveryFields(row({ customerId: undefined }))[0]).toEqual([
+      'customer',
+      'Cuddy Customer Toyota',
+    ])
     expect(deliveryFields(row({ customerName: undefined }))[0]).toEqual(['customer', '(#312)'])
   })
 
@@ -62,17 +67,27 @@ describe('deliveryFields', () => {
   })
 
   it('shows when the shipment last changed and when it left, right after when it was made', () => {
-    const labels = deliveryFields(row({ updatedAt: '2026-10-25T09:30:00', shippedAt: '2026-10-24T08:00:00' })).map(([label]) => label)
-    const fields = Object.fromEntries(deliveryFields(row({ updatedAt: '2026-10-25T09:30:00', shippedAt: '2026-10-24T08:00:00' })))
+    const labels = deliveryFields(
+      row({ updatedAt: '2026-10-25T09:30:00', shippedAt: '2026-10-24T08:00:00' }),
+    ).map(([label]) => label)
+    const fields = Object.fromEntries(
+      deliveryFields(row({ updatedAt: '2026-10-25T09:30:00', shippedAt: '2026-10-24T08:00:00' })),
+    )
 
-    expect(labels.slice(labels.indexOf('createdAt'), labels.indexOf('createdAt') + 3)).toEqual(['createdAt', 'updatedAt', 'shippedAt'])
+    expect(labels.slice(labels.indexOf('createdAt'), labels.indexOf('createdAt') + 3)).toEqual([
+      'createdAt',
+      'updatedAt',
+      'shippedAt',
+    ])
     expect(fields.updatedAt).toBe('2026-10-25 09:30:00')
     expect(fields.shippedAt).toBe('2026-10-24 08:00:00')
   })
 
   it('shows the tracking number only once it is set', () => {
     expect(deliveryFields(row()).map(([label]) => label)).not.toContain('trackingNumber')
-    expect(deliveryFields(row({ trackingNumber: '' })).map(([label]) => label)).not.toContain('trackingNumber')
+    expect(deliveryFields(row({ trackingNumber: '' })).map(([label]) => label)).not.toContain(
+      'trackingNumber',
+    )
 
     const fields = deliveryFields(row({ trackingNumber: 'DHL-123' }))
     const labels = fields.map(([label]) => label)

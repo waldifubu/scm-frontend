@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { bookDeliveryBody, idsText } from './bookDelivery'
 
 describe('bookDeliveryBody', () => {
   it('takes the ticked ids and the chosen storehouse', () => {
-    expect(bookDeliveryBody([4, 9], '2')).toEqual({ body: { requestIds: [4, 9], storehouseId: 2 } })
+    expect(bookDeliveryBody([4, 9], '2')).toEqual({
+      body: { requestIds: [4, 9], storehouseId: 2 },
+    })
   })
 
   it('wants at least one request', () => {

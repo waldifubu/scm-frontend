@@ -69,7 +69,7 @@ export function DeliveryDetails({ row, onClose }: { row: DeliveryRow; onClose: (
   const mayDecline = canDeclineShipment(row.status)
   const answers = mayAccept || mayDecline
 
-  const start = (mutation: typeof accept | typeof decline | typeof inTransit | typeof delivered) => {
+  const start = (mutation: typeof accept) => {
     setNotice(null)
     accept.reset()
     decline.reset()
@@ -86,7 +86,12 @@ export function DeliveryDetails({ row, onClose }: { row: DeliveryRow; onClose: (
             Shipment {row.shipmentId}
             <span className={`badge ${statusBadgeClass(row.status)}`}>{row.status}</span>
           </h3>
-          <button type="button" className="btn-close" aria-label="Close the details" onClick={onClose} />
+          <button
+            type="button"
+            className="btn-close"
+            aria-label="Close the details"
+            onClick={onClose}
+          />
         </div>
 
         <dl className="row mb-0 mt-3">
@@ -121,7 +126,12 @@ export function DeliveryDetails({ row, onClose }: { row: DeliveryRow; onClose: (
             />
             <div className="d-flex flex-wrap gap-2 mt-2">
               {mayAccept && (
-                <button type="button" className="btn btn-success" disabled={busy} onClick={() => start(accept)}>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  disabled={busy}
+                  onClick={() => start(accept)}
+                >
                   {accept.isPending ? 'Accepting…' : 'Accept'}
                 </button>
               )}

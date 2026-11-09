@@ -26,7 +26,15 @@ export function EntityLinkAnchor({ link }: { link: EntityLink }) {
  * A table cell's value: a link where the column leads somewhere (`orderNo`, `sku` - see `entityLinkOf`),
  * else `children`, which is what the cell would have shown anyway.
  */
-export function LinkedValue({ column, value, children }: { column: string; value: unknown; children?: ReactNode }) {
+export function LinkedValue({
+  column,
+  value,
+  children,
+}: {
+  column: string
+  value: unknown
+  children?: ReactNode
+}) {
   const link = entityLinkOf(column, value)
   return link ? <EntityLinkAnchor link={link} /> : <>{children}</>
 }

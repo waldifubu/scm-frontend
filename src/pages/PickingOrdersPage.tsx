@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { pickingOrdersQueryOptions, pickOrder, pickReservation, releasePick, releaseQuestion, type PickingStage } from '../api/pickingOrders'
-import { productLabel } from '../format'
+import {
+  pickingOrdersQueryOptions,
+  pickOrder,
+  pickReservation,
+  releasePick,
+  releaseQuestion,
+  type PickingStage,
+} from '../api/pickingOrders'
+import { productLabel, cell } from '../format'
 import { ConfirmModal } from './ConfirmModal'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
 
 const MESSAGE_SECONDS = 5
 
@@ -117,12 +119,16 @@ export function PickingOrdersPage() {
   }, [notice])
 
   const items = data?.content ?? []
-  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter((c) => !HIDDEN_COLUMNS.has(c))
+  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
+    (c) => !HIDDEN_COLUMNS.has(c),
+  )
 
   return (
     <div className="card shadow-sm">
       <div className="card-body d-flex flex-wrap gap-2 align-items-center">
-        <PageTitle icon="picking" className="me-auto">Picking Orders</PageTitle>
+        <PageTitle icon="picking" className="me-auto">
+          Picking Orders
+        </PageTitle>
         <select
           className="form-select form-select-sm w-auto"
           aria-label="Stage"
@@ -140,7 +146,11 @@ export function PickingOrdersPage() {
 
       {isPending && <p className="p-3 mb-0">Loading picking orders…</p>}
       {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
-      {data && items.length === 0 && <p className="p-3 mb-0 text-body-secondary">{stage === 'ACTIVE' ? 'No picking orders.' : 'Nothing has been picked.'}</p>}
+      {data && items.length === 0 && (
+        <p className="p-3 mb-0 text-body-secondary">
+          {stage === 'ACTIVE' ? 'No picking orders.' : 'Nothing has been picked.'}
+        </p>
+      )}
       {data && items.length > 0 && (
         <>
           <div className="table-responsive">
@@ -216,32 +226,35 @@ export function PickingOrdersPage() {
         </ConfirmModal>
       )}
       {stage === 'ACTIVE' && (
-      <form
-        className="card-body d-flex flex-wrap gap-2 align-items-center"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (orderNo.trim()) pickByOrder.mutate(orderNo.trim())
-        }}
-      >
-        <label htmlFor="picking-order-no">Try to pick via order no:</label>
-        <input
-          id="picking-order-no"
-          className="form-control form-control-sm w-auto"
-          value={orderNo}
-          onChange={(e) => setOrderNo(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1"
-          disabled={busy || !orderNo.trim()}
+        <form
+          className="card-body d-flex flex-wrap gap-2 align-items-center"
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (orderNo.trim()) pickByOrder.mutate(orderNo.trim())
+          }}
         >
-          <PickIcon />
-          Pick
-        </button>
-      </form>
+          <label htmlFor="picking-order-no">Try to pick via order no:</label>
+          <input
+            id="picking-order-no"
+            className="form-control form-control-sm w-auto"
+            value={orderNo}
+            onChange={(e) => setOrderNo(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1"
+            disabled={busy || !orderNo.trim()}
+          >
+            <PickIcon />
+            Pick
+          </button>
+        </form>
       )}
       {notice && (
-        <p className={`px-3 pb-2 mb-0 ${notice.failed ? 'text-danger' : 'text-success'}`} role="status">
+        <p
+          className={`px-3 pb-2 mb-0 ${notice.failed ? 'text-danger' : 'text-success'}`}
+          role="status"
+        >
           {notice.text}
         </p>
       )}

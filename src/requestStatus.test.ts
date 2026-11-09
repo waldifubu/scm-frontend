@@ -1,7 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { requestStatusClass } from './requestStatus'
 
-const STATUSES = ['OPEN', 'APPROVED', 'IN_TRANSIT', 'DELIVERED', 'IN_STOCK', 'REJECTED', 'CANCELLED']
+const STATUSES = [
+  'OPEN',
+  'APPROVED',
+  'IN_TRANSIT',
+  'DELIVERED',
+  'IN_STOCK',
+  'REJECTED',
+  'CANCELLED',
+]
 
 describe('requestStatusClass', () => {
   it('gives every status a colour of its own', () => {

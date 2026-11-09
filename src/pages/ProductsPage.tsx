@@ -6,11 +6,7 @@ import { productsQueryOptions, type ProductFilter } from '../api/products'
 import { hasRole } from '../api/types'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
+import { cell } from '../format'
 
 const columns = [
   { key: 'articleNo', label: 'articleNo' },
@@ -19,7 +15,13 @@ const columns = [
   { key: 'weight', label: 'weight (kg)' },
 ]
 
-function ProductsTable({ filter, onPage }: { filter: ProductFilter; onPage: (page: number) => void }) {
+function ProductsTable({
+  filter,
+  onPage,
+}: {
+  filter: ProductFilter
+  onPage: (page: number) => void
+}) {
   const { data, isPending, error } = useQuery(productsQueryOptions(filter))
   const { data: user } = useQuery(meQueryOptions)
   const canEdit = user ? hasRole(user, 'MANAGER') : false
@@ -31,59 +33,59 @@ function ProductsTable({ filter, onPage }: { filter: ProductFilter; onPage: (pag
 
   return (
     <>
-    <div className="table-responsive">
-      <table className="table table-striped table-sm mb-0">
-        <thead>
-          <tr>
-            {columns.map((column) => (
-              <th key={column.key}>{column.label}</th>
-            ))}
-            {canEdit && <th />}
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product, index) => (
-            <tr key={cell(product.articleNo) || index}>
+      <div className="table-responsive">
+        <table className="table table-striped table-sm mb-0">
+          <thead>
+            <tr>
               {columns.map((column) => (
-                <td key={column.key}>
-                  <Link
-                    to="/products/$articleNo"
-                    params={{ articleNo: cell(product.articleNo) }}
-                    className="text-decoration-none text-reset"
-                  >
-                    {cell(product[column.key])}
-                  </Link>
-                </td>
+                <th key={column.key}>{column.label}</th>
               ))}
-              {canEdit && (
-                <td className="text-end">
-                  <Link
-                    to="/products/$articleNo/edit"
-                    params={{ articleNo: cell(product.articleNo) }}
-                    className="btn btn-sm btn-outline-secondary py-0"
-                    title="Edit"
-                    aria-label={`Edit product ${cell(product.articleNo)}`}
-                  >
-                    ✎
-                  </Link>
-                </td>
-              )}
+              {canEdit && <th />}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <dl className="row justify-content-end small text-body-secondary px-2 mt-2 mb-2">
-      <dd className="col-auto mb-0 me-auto">
-        <Pager page={data.page} size={data.size} total={data.total} onPage={onPage} />
-      </dd>
-      <dt className="col-auto">total</dt>
-      <dd className="col-auto">{data.total}</dd>
-      <dt className="col-auto">page</dt>
-      <dd className="col-auto">{data.page}</dd>
-      <dt className="col-auto">size</dt>
-      <dd className="col-auto">{data.size}</dd>
-    </dl>
+          </thead>
+          <tbody>
+            {products.map((product, index) => (
+              <tr key={cell(product.articleNo) || index}>
+                {columns.map((column) => (
+                  <td key={column.key}>
+                    <Link
+                      to="/products/$articleNo"
+                      params={{ articleNo: cell(product.articleNo) }}
+                      className="text-decoration-none text-reset"
+                    >
+                      {cell(product[column.key])}
+                    </Link>
+                  </td>
+                ))}
+                {canEdit && (
+                  <td className="text-end">
+                    <Link
+                      to="/products/$articleNo/edit"
+                      params={{ articleNo: cell(product.articleNo) }}
+                      className="btn btn-sm btn-outline-secondary py-0"
+                      title="Edit"
+                      aria-label={`Edit product ${cell(product.articleNo)}`}
+                    >
+                      ✎
+                    </Link>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <dl className="row justify-content-end small text-body-secondary px-2 mt-2 mb-2">
+        <dd className="col-auto mb-0 me-auto">
+          <Pager page={data.page} size={data.size} total={data.total} onPage={onPage} />
+        </dd>
+        <dt className="col-auto">total</dt>
+        <dd className="col-auto">{data.total}</dd>
+        <dt className="col-auto">page</dt>
+        <dd className="col-auto">{data.page}</dd>
+        <dt className="col-auto">size</dt>
+        <dd className="col-auto">{data.size}</dd>
+      </dl>
     </>
   )
 }
@@ -101,7 +103,9 @@ export function ProductsPage() {
     <>
       <div className="card shadow-sm">
         <div className="card-body d-flex flex-wrap gap-2 align-items-center">
-          <PageTitle icon="products" className="me-auto">Products</PageTitle>
+          <PageTitle icon="products" className="me-auto">
+            Products
+          </PageTitle>
           <input
             type="number"
             min={0}

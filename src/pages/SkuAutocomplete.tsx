@@ -65,7 +65,12 @@ export function SkuAutocomplete({ options, value, onChange }: Props) {
           value={chosen?.name ? `${value} — ${chosen.name}` : value}
           aria-label="Chosen SKU"
         />
-        <button type="button" className="btn btn-outline-secondary" onClick={clear} aria-label="Clear the SKU filter">
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={clear}
+          aria-label="Clear the SKU filter"
+        >
           Clear
         </button>
       </div>
@@ -99,7 +104,12 @@ export function SkuAutocomplete({ options, value, onChange }: Props) {
         />
       </div>
       {open && (
-        <ul id={listId} role="listbox" className="list-group position-absolute w-100 shadow-sm mt-1" style={{ zIndex: 10 }}>
+        <ul
+          id={listId}
+          role="listbox"
+          className="list-group position-absolute w-100 shadow-sm mt-1"
+          style={{ zIndex: 10 }}
+        >
           {suggestions.length === 0 ? (
             <li className="list-group-item text-body-secondary small">No SKU matches.</li>
           ) : (

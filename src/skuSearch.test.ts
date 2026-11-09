@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { filterBySku, skuOptions, suggestSkus, type SkuOption } from './skuSearch'
 
 const options: SkuOption[] = [
@@ -11,7 +11,10 @@ describe('skuOptions', () => {
   it('lists every SKU once, in order, with the name where one is known', () => {
     const items = [{ sku: 'a' }, { sku: 'b' }, { sku: 'a' }, { id: 3 }, { sku: null }]
 
-    expect(skuOptions(items, new Map([['b', 'Bolt']]))).toEqual([{ sku: 'a', name: undefined }, { sku: 'b', name: 'Bolt' }])
+    expect(skuOptions(items, new Map([['b', 'Bolt']]))).toEqual([
+      { sku: 'a', name: undefined },
+      { sku: 'b', name: 'Bolt' },
+    ])
   })
 
   it('is empty without rows', () => {
@@ -26,7 +29,9 @@ describe('suggestSkus', () => {
   })
 
   it('matches a part of the SKU, whatever the case', () => {
-    expect(suggestSkus(options, '99C3').map((o) => o.sku)).toEqual(['706a99c3-944b-11f1-9b51-001e064520d8'])
+    expect(suggestSkus(options, '99C3').map((o) => o.sku)).toEqual([
+      '706a99c3-944b-11f1-9b51-001e064520d8',
+    ])
   })
 
   it('puts SKUs that start with the input before the ones that merely contain it', () => {

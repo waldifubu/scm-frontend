@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vite-plus/test'
 import { groupColors, PASTEL_RAINBOW } from './rowColors'
 
 describe('PASTEL_RAINBOW', () => {
@@ -8,7 +8,9 @@ describe('PASTEL_RAINBOW', () => {
   })
 
   it('runs through the hues in rainbow order and keeps them all pastel', () => {
-    const parsed = PASTEL_RAINBOW.map((c) => /^hsl\((\d+) (\d+)% (\d+)%\)$/.exec(c)!.slice(1).map(Number))
+    const parsed = PASTEL_RAINBOW.map((c) =>
+      /^hsl\((\d+) (\d+)% (\d+)%\)$/.exec(c)!.slice(1).map(Number),
+    )
 
     const hues = parsed.map(([h]) => h!)
     expect(hues).toEqual([...hues].sort((a, b) => a - b))

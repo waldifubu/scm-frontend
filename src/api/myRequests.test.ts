@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { answerRequest, fetchMyRequests } from './myRequests'
 
 afterEach(() => {
@@ -7,7 +7,9 @@ afterEach(() => {
 
 describe('fetchMyRequests', () => {
   it('reads the supplier list', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('[{"id":1,"qty":5,"requestStatus":"OPEN"}]', { status: 200 }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response('[{"id":1,"qty":5,"requestStatus":"OPEN"}]', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(fetchMyRequests()).resolves.toMatchObject([{ id: 1, qty: 5 }])
@@ -15,7 +17,10 @@ describe('fetchMyRequests', () => {
   })
 
   it('also reads a paged answer', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"content":[{"id":2}]}', { status: 200 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('{"content":[{"id":2}]}', { status: 200 })),
+    )
 
     await expect(fetchMyRequests()).resolves.toMatchObject([{ id: 2 }])
   })
@@ -23,7 +28,9 @@ describe('fetchMyRequests', () => {
 
 describe('answerRequest', () => {
   it('posts the step to the request, without a body', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('{"id":7,"requestStatus":"APPROVED"}', { status: 200 }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response('{"id":7,"requestStatus":"APPROVED"}', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(answerRequest(7, 'approve')).resolves.toMatchObject({ requestStatus: 'APPROVED' })
@@ -34,7 +41,10 @@ describe('answerRequest', () => {
   })
 
   it('lets a refusal through', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"message":"Request 7 is OPEN"}', { status: 409 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response('{"message":"Request 7 is OPEN"}', { status: 409 })),
+    )
 
     await expect(answerRequest(7, 'delivered')).rejects.toMatchObject({ status: 409 })
   })

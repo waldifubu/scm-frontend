@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { bookDelivery, requestsPath } from './componentRequests'
 
 describe('requestsPath', () => {
@@ -19,19 +19,35 @@ afterEach(() => {
 
 describe('bookDelivery', () => {
   it('posts the request ids and the storehouse to /stock/book', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('[{"id":4,"requestStatus":"IN_STOCK"}]', { status: 200 }))
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response('[{"id":4,"requestStatus":"IN_STOCK"}]', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(bookDelivery({ requestIds: [4, 9], storehouseId: 2 })).resolves.toMatchObject([{ requestStatus: 'IN_STOCK' }])
+    await expect(bookDelivery({ requestIds: [4, 9], storehouseId: 2 })).resolves.toMatchObject([
+      { requestStatus: 'IN_STOCK' },
+    ])
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/1.0/stock/book')
     expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: 'POST' })
-    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ requestIds: [4, 9], storehouseId: 2 })
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({
+      requestIds: [4, 9],
+      storehouseId: 2,
+    })
   })
 
   it('lets a refusal through', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"message":"Only DELIVERED requests can be booked in"}', { status: 409 })))
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response('{"message":"Only DELIVERED requests can be booked in"}', { status: 409 }),
+        ),
+    )
 
-    await expect(bookDelivery({ requestIds: [1], storehouseId: 2 })).rejects.toMatchObject({ status: 409 })
+    await expect(bookDelivery({ requestIds: [1], storehouseId: 2 })).rejects.toMatchObject({
+      status: 409,
+    })
   })
 })

@@ -1,7 +1,9 @@
 import type { AddStockRequest, TransferStockRequest } from './api/stock'
 
 /** What a form hands over: a request ready to send, or the one thing that is wrong with the input. */
-export type FormResult<T> = { request: T; error?: undefined } | { request?: undefined; error: string }
+export type FormResult<T> =
+  | { request: T; error?: undefined }
+  | { request?: undefined; error: string }
 
 function wholeNumber(text: string): number | null {
   const value = Number(text)
@@ -10,12 +12,17 @@ function wholeNumber(text: string): number | null {
 
 function quantity(text: string): { qty: number } | { error: string } {
   const qty = wholeNumber(text)
-  if (qty === null || qty < 1) return { error: 'The quantity has to be a whole number of at least 1.' }
+  if (qty === null || qty < 1)
+    return { error: 'The quantity has to be a whole number of at least 1.' }
   return { qty }
 }
 
 /** The input of "Book stock" - `sku`, `storehouseId` and `qty` as typed or chosen - as `POST /stock/add` wants it. */
-export function addStockRequest(input: { sku: string | null; storehouseId: string; qty: string }): FormResult<AddStockRequest> {
+export function addStockRequest(input: {
+  sku: string | null
+  storehouseId: string
+  qty: string
+}): FormResult<AddStockRequest> {
   if (input.sku === null) return { error: 'Choose a SKU.' }
   const storehouseId = wholeNumber(input.storehouseId)
   if (storehouseId === null) return { error: 'Choose a storehouse.' }

@@ -1,5 +1,13 @@
-import { describe, expect, it } from 'vitest'
-import { formatCubicMeters, formatDate, formatDimensions, formatMoment, formatNumber, productLabel, shorten } from './format'
+import { describe, expect, it } from 'vite-plus/test'
+import {
+  formatCubicMeters,
+  formatDate,
+  formatDimensions,
+  formatMoment,
+  formatNumber,
+  productLabel,
+  shorten,
+} from './format'
 
 describe('formatMoment', () => {
   it('drops the T and anything beyond the second', () => {

@@ -2,17 +2,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet } from '@tanstack/react-router'
 import { useState } from 'react'
 import { meQueryOptions } from '../api/auth'
-import { componentSku, componentsQueryOptions, requestComponents, supplierResolutionQueryOptions } from '../api/components'
+import {
+  componentSku,
+  componentsQueryOptions,
+  requestComponents,
+  supplierResolutionQueryOptions,
+} from '../api/components'
 import { hasRole } from '../api/types'
 import { DEFAULT_QTY, requestComponentsBody, uncoveredSkus } from '../componentRequest'
 import { Chevron } from './Chevron'
 import { PageTitle } from './PageTitle'
 import { Pager } from './Pager'
-
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return ''
-  return typeof value === 'object' ? JSON.stringify(value) : String(value)
-}
+import { cell } from '../format'
 
 const HIDDEN_COLUMNS = ['id', 'componentId', 'sku']
 
@@ -20,7 +21,9 @@ const HIDDEN_COLUMNS = ['id', 'componentId', 'sku']
 function productLabel(product: unknown): string {
   if (typeof product !== 'object' || product === null) return cell(product)
   const { name, articleNo } = product as Record<string, unknown>
-  return articleNo === null || articleNo === undefined ? cell(name) : `${cell(name)} (${cell(articleNo)})`
+  return articleNo === null || articleNo === undefined
+    ? cell(name)
+    : `${cell(name)} (${cell(articleNo)})`
 }
 
 function ComponentsTable({
@@ -80,7 +83,9 @@ function ComponentsTable({
                       params={{ sku: componentSku(component) }}
                       className="text-decoration-none text-reset"
                     >
-                      {column === 'product' ? productLabel(component[column]) : cell(component[column])}
+                      {column === 'product'
+                        ? productLabel(component[column])
+                        : cell(component[column])}
                     </Link>
                   </td>
                 ))}
@@ -107,7 +112,17 @@ function ComponentsTable({
 /** The button's icon: a box with an arrow into it, goods coming in. */
 function RequestIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8" />
       <path d="M1 4h22v4H1z" />
       <path d="M12 11v6M9 14l3 3 3-3" />
@@ -120,7 +135,15 @@ function RequestIcon() {
  * give it per component, and a component no rule covers refuses the whole request (409), shown here.
  * Every ticked component becomes a line with its own quantity and the comment typed below.
  */
-function RequestComponentsForm({ selected, open, onRequested }: { selected: string[]; open: boolean; onRequested: () => void }) {
+function RequestComponentsForm({
+  selected,
+  open,
+  onRequested,
+}: {
+  selected: string[]
+  open: boolean
+  onRequested: () => void
+}) {
   const queryClient = useQueryClient()
   const [comment, setComment] = useState('')
   // The quantity typed for each ticked component, by SKU.
@@ -133,7 +156,10 @@ function RequestComponentsForm({ selected, open, onRequested }: { selected: stri
   const request = useMutation({
     mutationFn: requestComponents,
     onSuccess: async (rows) => {
-      setNotice({ text: `${rows.length === 1 ? 'One request' : `${rows.length} requests`} placed.`, failed: false })
+      setNotice({
+        text: `${rows.length === 1 ? 'One request' : `${rows.length} requests`} placed.`,
+        failed: false,
+      })
       setComment('')
       setQtys({})
       onRequested()
@@ -157,12 +183,24 @@ function RequestComponentsForm({ selected, open, onRequested }: { selected: stri
           }}
         >
           <div className="card-body d-flex flex-column gap-2">
-            <label className="form-label mb-0" htmlFor="request-components-chosen">Chosen components</label>
-            <input id="request-components-chosen" className="form-control form-control-sm" readOnly placeholder="None chosen yet" value={selected.join(', ')} />
+            <label className="form-label mb-0" htmlFor="request-components-chosen">
+              Chosen components
+            </label>
+            <input
+              id="request-components-chosen"
+              className="form-control form-control-sm"
+              readOnly
+              placeholder="None chosen yet"
+              value={selected.join(', ')}
+            />
             {selected.length > 0 && (
               <div className="mt-1">
-                {resolution.isPending && <p className="small text-body-secondary mb-0">Looking up suppliers…</p>}
-                {resolution.error && <p className="small text-danger mb-0">{resolution.error.message}</p>}
+                {resolution.isPending && (
+                  <p className="small text-body-secondary mb-0">Looking up suppliers…</p>
+                )}
+                {resolution.error && (
+                  <p className="small text-danger mb-0">{resolution.error.message}</p>
+                )}
                 {/* One row per ticked component, so its quantity can be typed before the supplier is known. */}
                 <table className="table table-sm align-middle mb-0 w-auto">
                   <thead>
@@ -178,8 +216,14 @@ function RequestComponentsForm({ selected, open, onRequested }: { selected: stri
                       return (
                         <tr key={sku}>
                           <td className="font-monospace small">{sku}</td>
-                          <td className={row && row.supplierId === null ? 'text-danger' : undefined}>
-                            {!row ? '' : row.supplierId === null ? 'no supplier rule' : `${row.supplierName ?? ''} (${row.supplierId})`}
+                          <td
+                            className={row && row.supplierId === null ? 'text-danger' : undefined}
+                          >
+                            {!row
+                              ? ''
+                              : row.supplierId === null
+                                ? 'no supplier rule'
+                                : `${row.supplierName ?? ''} (${row.supplierId})`}
                           </td>
                           <td>
                             <input
@@ -190,7 +234,9 @@ function RequestComponentsForm({ selected, open, onRequested }: { selected: stri
                               className="form-control form-control-sm"
                               style={{ width: '6rem' }}
                               value={qtys[sku] ?? DEFAULT_QTY}
-                              onChange={(event) => setQtys((current) => ({ ...current, [sku]: event.target.value }))}
+                              onChange={(event) =>
+                                setQtys((current) => ({ ...current, [sku]: event.target.value }))
+                              }
                             />
                           </td>
                         </tr>
@@ -200,20 +246,37 @@ function RequestComponentsForm({ selected, open, onRequested }: { selected: stri
                 </table>
                 {uncovered.length > 0 && (
                   <p className="small text-danger mt-1 mb-0">
-                    No rule covers {uncovered.length === 1 ? 'one component' : `${uncovered.length} components`}; the request would be refused. Untick them.
+                    No rule covers{' '}
+                    {uncovered.length === 1 ? 'one component' : `${uncovered.length} components`};
+                    the request would be refused. Untick them.
                   </p>
                 )}
               </div>
             )}
-            <label className="form-label mb-0 mt-2" htmlFor="request-components-comment">Comment</label>
-            <input id="request-components-comment" className="form-control form-control-sm" value={comment} onChange={(event) => setComment(event.target.value)} />
-            <button type="submit" className="btn btn-success align-self-start mt-2" disabled={request.isPending || selected.length === 0 || uncovered.length > 0}>
-              {request.isPending && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />}
+            <label className="form-label mb-0 mt-2" htmlFor="request-components-comment">
+              Comment
+            </label>
+            <input
+              id="request-components-comment"
+              className="form-control form-control-sm"
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+            />
+            <button
+              type="submit"
+              className="btn btn-success align-self-start mt-2"
+              disabled={request.isPending || selected.length === 0 || uncovered.length > 0}
+            >
+              {request.isPending && (
+                <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+              )}
               Request
             </button>
           </div>
           <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
-            {notice && <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>}
+            {notice && (
+              <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>
+            )}
           </div>
         </form>
       </div>
@@ -229,15 +292,26 @@ export function ComponentsPage() {
   const [showRequest, setShowRequest] = useState(false)
   const { data: user } = useQuery(meQueryOptions)
   // The roles `POST /components/request` lets through; anybody else would get a 403.
-  const canRequest = user ? ['ADMIN', 'MANAGER', 'WAREHOUSE'].some((role) => hasRole(user, role)) : false
-  const toggle = (sku: string) => setSelected((current) => (current.includes(sku) ? current.filter((value) => value !== sku) : [...current, sku]))
+  const canRequest = user
+    ? ['ADMIN', 'MANAGER', 'WAREHOUSE'].some((role) => hasRole(user, role))
+    : false
+  const toggle = (sku: string) =>
+    setSelected((current) =>
+      current.includes(sku) ? current.filter((value) => value !== sku) : [...current, sku],
+    )
   return (
     <>
       <div className="card shadow-sm">
         <div className="card-body">
           <PageTitle icon="components">Components</PageTitle>
         </div>
-        <ComponentsTable page={page} onPage={setPage} selected={selected} onToggle={toggle} selectable={canRequest} />
+        <ComponentsTable
+          page={page}
+          onPage={setPage}
+          selected={selected}
+          onToggle={toggle}
+          selectable={canRequest}
+        />
       </div>
       <Outlet />
       {canRequest && (
@@ -253,7 +327,11 @@ export function ComponentsPage() {
             Request Components
             <Chevron up={showRequest} />
           </button>
-          <RequestComponentsForm selected={selected} open={showRequest} onRequested={() => setSelected([])} />
+          <RequestComponentsForm
+            selected={selected}
+            open={showRequest}
+            onRequested={() => setSelected([])}
+          />
         </>
       )}
     </>

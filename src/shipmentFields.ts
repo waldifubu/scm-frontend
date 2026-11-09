@@ -7,10 +7,16 @@ import { formatCubicMeters, formatDate, formatMoment, formatNumber } from './for
  * only while the carrier has left one.
  */
 export function shipmentFields(shipment: ShipmentDetail): [label: string, value: string][] {
-  const customer = [shipment.customerName, shipment.customerId != null ? `(#${shipment.customerId})` : null]
+  const customer = [
+    shipment.customerName,
+    shipment.customerId != null ? `(#${shipment.customerId})` : null,
+  ]
     .filter(Boolean)
     .join(' ')
-  const distributor = [shipment.distributorName, shipment.distributorId != null ? `(#${shipment.distributorId})` : null]
+  const distributor = [
+    shipment.distributorName,
+    shipment.distributorId != null ? `(#${shipment.distributorId})` : null,
+  ]
     .filter(Boolean)
     .join(' ')
 
@@ -27,7 +33,12 @@ export function shipmentFields(shipment: ShipmentDetail): [label: string, value:
     ['deliveredAt', formatMoment(shipment.deliveredAt)],
     ['packageCount', String(shipment.packageCount)],
     ['weight', `${formatNumber(shipment.weight)} kg`],
-    ['volume', totalVolume(shipment.packages) === null ? '' : `${formatCubicMeters(totalVolume(shipment.packages))} m³`],
+    [
+      'volume',
+      totalVolume(shipment.packages) === null
+        ? ''
+        : `${formatCubicMeters(totalVolume(shipment.packages))} m³`,
+    ],
     ['comment', shipment.comment ?? ''],
     ['distributorComment', shipment.distributorComment ?? ''],
   ]

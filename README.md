@@ -31,14 +31,14 @@ Open the local URL printed by Vite. Sign-in is handled by the backend; the front
 
 ## Available commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start the Vite development server |
-| `pnpm test` | Run the Vitest suite once |
-| `pnpm test:watch` | Run Vitest in watch mode |
-| `pnpm lint` | Run Oxlint |
-| `pnpm build` | Type-check and create the production bundle in `dist/` |
-| `pnpm preview` | Preview the production bundle locally |
+| Command           | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `pnpm dev`        | Start the Vite development server                      |
+| `pnpm test`       | Run the Vitest suite once                              |
+| `pnpm test:watch` | Run Vitest in watch mode                               |
+| `pnpm lint`       | Run Oxlint                                             |
+| `pnpm build`      | Type-check and create the production bundle in `dist/` |
+| `pnpm preview`    | Preview the production bundle locally                  |
 
 ## Features
 

@@ -1,7 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { shippableByIdQueryOptions, type ShippablePackage } from '../api/shippablePackages'
-import { formatCubicMeters, formatDate, formatDimensions, formatMoment, formatNumber } from '../format'
+import {
+  formatCubicMeters,
+  formatDate,
+  formatDimensions,
+  formatMoment,
+  formatNumber,
+} from '../format'
 import { EntityLinkAnchor } from './EntityLinkAnchor'
 
 const route = getRouteApi('/authed/shippable-items/$packageId')
@@ -14,7 +20,12 @@ function ShippableDetails({ row, onClose }: { row: ShippablePackage; onClose: ()
         <div className="d-flex align-items-center mb-2">
           <h3 className="h5 mb-0 me-auto">Container {row.packageNumber ?? row.id}</h3>
           <span className="badge text-bg-success me-3">{row.status}</span>
-          <button type="button" className="btn-close" aria-label="Close the details" onClick={onClose} />
+          <button
+            type="button"
+            className="btn-close"
+            aria-label="Close the details"
+            onClick={onClose}
+          />
         </div>
         <dl className="row mb-0">
           <dt className="col-sm-3">customer</dt>
@@ -28,12 +39,23 @@ function ShippableDetails({ row, onClose }: { row: ShippablePackage; onClose: ()
           <dt className="col-sm-3">weight</dt>
           <dd className="col-sm-9">
             {formatNumber(row.weight)} kg
-            {row.packageWeight != null && <span className="text-body-secondary"> ({formatNumber(row.packageWeight)} kg with the {row.type ? 'tare of its type' : 'tare'})</span>}
+            {row.packageWeight != null && (
+              <span className="text-body-secondary">
+                {' '}
+                ({formatNumber(row.packageWeight)} kg with the{' '}
+                {row.type ? 'tare of its type' : 'tare'})
+              </span>
+            )}
           </dd>
           <dt className="col-sm-3">dimensions</dt>
           <dd className="col-sm-9">
             {formatDimensions(row.length, row.width, row.height)}
-            {row.volume != null && <span className="text-body-secondary"> — volume {formatCubicMeters(row.volume)} m³</span>}
+            {row.volume != null && (
+              <span className="text-body-secondary">
+                {' '}
+                — volume {formatCubicMeters(row.volume)} m³
+              </span>
+            )}
           </dd>
         </dl>
         <h4 className="h6 mt-4">Items</h4>
@@ -54,8 +76,16 @@ function ShippableDetails({ row, onClose }: { row: ShippablePackage; onClose: ()
               <tbody>
                 {row.items.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.orderNo != null ? <EntityLinkAnchor link={{ kind: 'order', orderNo: String(item.orderNo) }} /> : ''}</td>
-                    <td>{item.sku ? <EntityLinkAnchor link={{ kind: 'sku', sku: item.sku }} /> : ''}</td>
+                    <td>
+                      {item.orderNo != null ? (
+                        <EntityLinkAnchor link={{ kind: 'order', orderNo: String(item.orderNo) }} />
+                      ) : (
+                        ''
+                      )}
+                    </td>
+                    <td>
+                      {item.sku ? <EntityLinkAnchor link={{ kind: 'sku', sku: item.sku }} /> : ''}
+                    </td>
                     <td className="text-end">{item.quantity ?? ''}</td>
                     <td className="text-end">{item.totalQuantity ?? ''}</td>
                     <td>{item.fulfillmentStatus ?? ''}</td>
@@ -83,11 +113,7 @@ export function ShippableDetailsPage() {
   if (isPending) return <p className="mt-4 mb-0">Loading container…</p>
   if (error) return <p className="mt-4 mb-0 text-danger">{error.message}</p>
   if (!row) {
-    return (
-      <p className="mt-4 mb-0 text-body-secondary">
-        There is no container {packageId}.
-      </p>
-    )
+    return <p className="mt-4 mb-0 text-body-secondary">There is no container {packageId}.</p>
   }
   return <ShippableDetails key={row.id} row={row} onClose={close} />
 }

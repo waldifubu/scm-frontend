@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from './client'
 import { withPage } from './pageQuery'
+import { cell } from '../format'
 
 /** A component as the backend sends it. Its fields are not typed yet, so the table reads them as they come. */
 export type ComponentDto = Record<string, unknown>
@@ -38,7 +39,7 @@ export const componentQueryOptions = (sku: string) =>
 
 /** The sku of a component: what the details are addressed by. */
 export function componentSku(component: ComponentDto): string {
-  return component.sku === null || component.sku === undefined ? '' : String(component.sku)
+  return cell(component.sku)
 }
 /** What `PATCH /components/{sku}` takes: every field optional, a field left out stays as it is. `''` clears manufacturer, description and externalId. */
 export interface ComponentPatch {
@@ -65,7 +66,10 @@ export interface RequestComponentsBody {
 
 /** `POST /components/request`: one request per line, each to the supplier the backend's rules give; 409 if a component has no rule. */
 export function requestComponents(body: RequestComponentsBody): Promise<Record<string, unknown>[]> {
-  return api<Record<string, unknown>[]>('/components/request', { method: 'POST', body: JSON.stringify(body) })
+  return api<Record<string, unknown>[]>('/components/request', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
 }
 
 /** Whom a request for one component would go to (`GET /components/suppliers/resolve`); the supplier fields are `null` when no rule covers it. */
