@@ -202,3 +202,114 @@
   transform: none;
   box-shadow: none;
 }
+
+/*
+ * The order workflow diagram. react-x-mermaid wraps every diagram in a box of its own - border, rounded
+ * corners, white ground, padding, margin - and the page already puts it into a card, so that box is a card
+ * in a card. Taken away here, together with the room it keeps free for its copy/download buttons (switched
+ * off) and the `max-width: 100%` that squeezes the diagram, and its text, down to the width of the card.
+ * The diagram keeps its natural size instead and the card scrolls sideways where it is wider. The long status names break into two lines so that natural size is not far wider than a card.
+ */
+.order-workflow .mermaid-renderer {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.order-workflow .mermaid-diagram {
+  justify-content: flex-start;
+  min-height: 0;
+  padding-top: 0;
+}
+
+.order-workflow .mermaid-diagram svg {
+  max-width: none;
+  height: auto;
+  /* A flex item shrinks by default, which is the squeeze again. */
+  flex-shrink: 0;
+}
+
+/*
+ * Order status badges, one colour per status (see statusBadgeClass). Text is white on the dark grounds and
+ * near black on the light ones, so each pair keeps a readable contrast.
+ */
+.badge.status-created {
+  background-color: #6c757d;
+  color: #fff;
+}
+.badge.status-acknowledged {
+  background-color: #0dcaf0;
+  color: #212529;
+}
+.badge.status-review {
+  background-color: #ffc107;
+  color: #212529;
+}
+.badge.status-approved {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.badge.status-rejected {
+  background-color: #dc3545;
+  color: #fff;
+}
+.badge.status-wait-supply {
+  background-color: #fd7e14;
+  color: #212529;
+}
+.badge.status-in-fulfillment {
+  background-color: #6f42c1;
+  color: #fff;
+}
+.badge.status-ready-for-dispatch {
+  background-color: #20c997;
+  color: #212529;
+}
+.badge.status-in-transit {
+  background-color: #6610f2;
+  color: #fff;
+}
+.badge.status-partially-delivered {
+  background-color: #8bc34a;
+  color: #212529;
+}
+.badge.status-delivered {
+  background-color: #198754;
+  color: #fff;
+}
+.badge.status-cancelled {
+  background-color: #343a40;
+  color: #fff;
+}
+.badge.status-completed {
+  background-color: #0f766e;
+  color: #fff;
+}
+.badge.status-unknown {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+/* The explanation beside the workflow diagram. */
+.order-workflow-tall .node {
+  cursor: help;
+}
+
+.order-workflow-note {
+  flex: 0 0 16rem;
+  max-width: 100%;
+  align-self: flex-start;
+  position: sticky;
+  top: 1rem;
+}
+
+/*
+ * The tall diagram runs top to bottom and is scaled to the window, so the whole flow is in view without
+ * scrolling: the height is the window height less the room the page itself takes, the width follows.
+ */
+.order-workflow-tall .mermaid-diagram svg {
+  height: max(24rem, calc(100vh - 14rem));
+  width: auto;
+}

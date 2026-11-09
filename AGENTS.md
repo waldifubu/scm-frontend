@@ -4,14 +4,15 @@
 
 This is a Vite, React, and TypeScript single-page frontend for supply-chain workflows. Keep application code in `src/`:
 
-- `src/pages/` contains route-level screens and page-specific UI.
-- `src/api/` owns typed backend calls and API data shapes; use `client.ts` for shared HTTP behavior.
+- `src/features/<feature>/` holds one part of the business, everything of it in one folder: its backend calls and data shapes, its pages and components, its pure helper modules and their tests. The features are `auth`, `home`, `orders`, `picking`, `packing`, `shipments`, `components` (the component catalogue and the supplier requests), `products` and `stock`. A feature imports from `shared/` and `layout/`, and from another feature only where it must (a product page shows the stock card, the packable list reuses the order-lines table).
+- `src/shared/` is what no feature owns: `shared/api` (`client.ts` for the shared HTTP behavior, `pageQuery.ts`, `types.ts`), `shared/lib` (`format.ts`, `paging.ts`, `tableSort.ts`, `entityLinks.ts`) and `shared/ui` (`Pager`, `ConfirmModal`, `SortableHeader`, `Chevron`, `EntityLinkAnchor`). Shared code never imports from a feature.
+- `src/layout/` is the frame around every page: the sidebar, the authenticated layout, `PageTitle`, `NavIcon` and `navigation.ts`, which decides which pages a role sees.
 - `src/router.tsx`, `src/queryClient.ts`, and `src/main.tsx` configure routing, data fetching, and application startup.
 - `src/assets/` and `public/` hold static assets. Put files needing bundling in `src/assets/`; use `public/` for directly served files.
 
-Shared building blocks to reuse before writing a new one: `pages/Pager.tsx` (paging buttons, driven by `paging.ts`), `pages/ConfirmModal.tsx` (a Bootstrap modal for a question with two answers - use it instead of `window.confirm`), `pages/SortableHeader.tsx` with `tableSort.ts`, `pages/PageTitle.tsx` (icon of the navigation entry), `format.ts` (`productLabel`, `formatMoment`) and `api/pageQuery.ts` (`withPage`). Which pages a role sees is decided in `navigation.ts`, and a customer-only user is kept to theirs by `mayOpen` in the router.
+Shared building blocks to reuse before writing a new one: `shared/ui/Pager.tsx` (paging buttons, driven by `shared/lib/paging.ts`), `shared/ui/ConfirmModal.tsx` (a Bootstrap modal for a question with two answers - use it instead of `window.confirm`), `shared/ui/SortableHeader.tsx` with `shared/lib/tableSort.ts`, `layout/PageTitle.tsx` (icon of the navigation entry), `shared/lib/format.ts` (`cell`, `productLabel`, `formatMoment`) and `shared/api/pageQuery.ts` (`withPage`). Which pages a role sees is decided in `layout/navigation.ts`, and a customer-only user is kept to theirs by `mayOpen` in the router. A new page goes into the feature it belongs to; a new feature gets a folder of its own under `src/features/`. Two modules in one folder must not differ only in case (`DeliveryDetails.tsx` and `deliveryDetails.ts` did, which the Windows file system treats as one name).
 
-Place a focused test beside its subject as `*.test.ts`, as in `src/redirect.test.ts` and `src/api/client.test.ts`.
+Place a focused test beside its subject as `*.test.ts`, as in `src/features/auth/redirect.test.ts` and `src/shared/api/client.test.ts`.
 
 ## Build, Test, and Development Commands
 

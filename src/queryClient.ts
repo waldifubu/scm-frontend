@@ -1,6 +1,6 @@
 import { QueryCache, QueryClient } from '@tanstack/react-query'
-import { meQueryKey } from './api/auth'
-import { ApiError } from './api/client'
+import { meQueryKey } from './features/auth/auth'
+import { ApiError } from './shared/api/client'
 
 /**
  * One rule for a session that ended: a 401 from any query means "log in again", so the cached answer

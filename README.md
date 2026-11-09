@@ -52,9 +52,10 @@ Navigation adapts to the signed-in user's roles. The backend remains responsible
 
 ## Project structure
 
-- `src/pages/` contains route-level screens and shared UI.
-- `src/api/` contains typed backend calls and API data shapes; `client.ts` centralizes HTTP behavior.
-- `src/router.tsx` configures routes and authentication guards; `src/navigation.ts` defines role-aware navigation.
+- `src/features/` has one folder per part of the business (`auth`, `home`, `orders`, `picking`, `packing`, `shipments`, `components`, `products`, `stock`), each with its backend calls, pages, helpers and tests.
+- `src/shared/` holds what no feature owns: `api/` (`client.ts` centralizes HTTP behavior), `lib/` (formatting, paging, sorting) and `ui/` (pager, confirm modal, sortable header).
+- `src/layout/` is the frame around every page: sidebar, authenticated layout, page title and `navigation.ts`, which defines the role-aware navigation.
+- `src/router.tsx` configures routes and authentication guards; `src/queryClient.ts` and `src/main.tsx` start the application.
 - Focused Vitest tests live beside their subject as `*.test.ts`.
 - `src/assets/` contains bundled assets; `public/` contains static files served as-is.
 
