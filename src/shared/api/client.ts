@@ -4,6 +4,10 @@
  * Every path is relative to the versioned API root, so a version change is one constant. The session
  * is the HttpOnly cookie the login sets: JavaScript never sees the token, the browser sends the cookie
  * by itself, and that is why every call asks for `credentials: 'include'`.
+ *
+ * The access token is short (15 minutes). A second HttpOnly cookie, the refresh token, buys a new one
+ * without a password: a 401 is therefore answered with one `POST /auth/refresh` and the call repeated -
+ * only when that fails as well is the session over. See `refreshSession`.
  */
 export const API_BASE = '/api/1.0'
 
@@ -45,7 +49,41 @@ function parse(text: string): unknown {
   }
 }
 
-export async function api<T = void>(path: string, init: RequestInit = {}): Promise<T> {
+/** Calls that must never trigger a refresh: they are how a session starts, renews or ends. */
+const NO_REFRESH = new Set(['/auth/login', '/auth/refresh', '/auth/logout'])
+
+/**
+ * The refresh in flight, shared: a page fires many calls, and when the access token ends they all see a
+ * 401 at the same moment.
+ */
+let refreshing: Promise<boolean> | undefined
+
+/**
+ * Asks the server for a new access token. Resolves `true` when it got one and `false` for any other answer
+ * (401: the refresh token is gone or was replayed; 403: the account is disabled; or the server cannot be
+ * reached) - the caller then reports its own 401.
+ *
+ * Parallel callers wait for one request, not one each: the server retires a refresh token when it is used,
+ * so a second request with the same cookie would be a replay.
+ */
+export function refreshSession(): Promise<boolean> {
+  refreshing ??= fetch(API_BASE + '/auth/refresh', {
+    method: 'POST',
+    headers: { Accept: 'application/json' },
+    credentials: 'include',
+  })
+    .then((response) => response.ok)
+    .catch(() => false)
+    .finally(() => {
+      refreshing = undefined
+    })
+  return refreshing
+}
+
+async function send(
+  path: string,
+  init: RequestInit,
+): Promise<{ response: Response; body: unknown }> {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
   if (init.body !== undefined && !headers.has('Content-Type')) {
@@ -60,7 +98,18 @@ export async function api<T = void>(path: string, init: RequestInit = {}): Promi
   }
 
   const text = await response.text()
-  const body = text === '' ? undefined : parse(text)
+  return { response, body: text === '' ? undefined : parse(text) }
+}
+
+export async function api<T = void>(path: string, init: RequestInit = {}): Promise<T> {
+  let { response, body } = await send(path, init)
+
+  // The session may only have run out of access token: renew it and repeat the call - once, so a refresh
+  // that "works" but does not help cannot loop. The path is looked at without its query string.
+  const bare = path.split('?')[0] ?? path
+  if (response.status === 401 && !NO_REFRESH.has(bare) && (await refreshSession())) {
+    ;({ response, body } = await send(path, init))
+  }
 
   if (!response.ok) {
     throw new ApiError(

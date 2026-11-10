@@ -36,7 +36,7 @@ export async function login(credentials: LoginRequest): Promise<void> {
   await api('/auth/login', { method: 'POST', body: JSON.stringify(credentials) })
 }
 
-/** Ends the session; the answer clears the cookie. */
+/** Ends the session: the answer clears both cookies and the server revokes the refresh token behind them. */
 export async function logout(): Promise<void> {
-  await api('/auth/logout')
+  await api('/auth/logout', { method: 'POST' })
 }

@@ -26,7 +26,7 @@ Use pnpm (the lockfile is `pnpm-lock.yaml`).
 
 ## Coding Style & Naming Conventions
 
-Write TypeScript and React function components. Follow the existing style: two-space indentation, single quotes, no semicolons, and trailing commas where the formatter-like conventions already use them. Name React components and page files in PascalCase (for example, `OrderDetailsPage.tsx`); use camelCase for functions, variables, and non-component modules (for example, `safeRedirect`). Keep API endpoints relative to `API_BASE` and preserve the shared cookie-based request behavior in `src/api/client.ts`.
+Write TypeScript and React function components. Follow the existing style: two-space indentation, single quotes, no semicolons, and trailing commas where the formatter-like conventions already use them. Name React components and page files in PascalCase (for example, `OrderDetailsPage.tsx`); use camelCase for functions, variables, and non-component modules (for example, `safeRedirect`). Keep API endpoints relative to `API_BASE` and preserve the shared cookie-based request behavior in `src/shared/api/client.ts`. That file also renews the session: a 401 from any call except login, refresh and logout triggers one shared `POST /auth/refresh` and a single repeat of the call; do not add refresh logic anywhere else, and always call the versioned `API_BASE` (the refresh cookie is only sent under `/api/1.0/auth`).
 
 ## Testing Guidelines
 
