@@ -5,6 +5,7 @@ import { checkOrder, newOrderQueryOptions, reserveOrder } from './orders'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
+import { OrderStatusBadge } from './OrderStatusBadge'
 
 const MESSAGE_SECONDS = 5
 
@@ -55,7 +56,11 @@ function NewOrdersTable({ page, onPage }: { page: number; onPage: (page: number)
                       params={{ orderNumber: cell(order.orderNo) }}
                       className="text-decoration-none text-reset"
                     >
-                      {cell(order[column])}
+                      {column === 'status' ? (
+                        <OrderStatusBadge status={order[column]} />
+                      ) : (
+                        cell(order[column])
+                      )}
                     </Link>
                   </td>
                 ))}
