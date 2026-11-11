@@ -16,7 +16,7 @@ describe('showsShipments', () => {
   it.each([
     'CREATED',
     'ACKNOWLEDGED',
-    'APPROVED',
+    'REVIEW',
     'IN_FULFILLMENT',
     'WAIT_SUPPLY',
     'CANCELLED',

@@ -2,7 +2,7 @@
  * The Mermaid source of the order workflow, with the status an order stands in marked.
  *
  * The steps are the ones the backend takes (see `OrderStatus` there): placed, confirmed - or parked until stock
- * is there -, reviewed, approved, in fulfilment, and from then on whatever the shipments its lines travel in
+ * is there -, reviewed, in fulfilment, and from then on whatever the shipments its lines travel in
  * make of it. A dotted arrow goes back: a cancelled shipment hands its packages back and the order falls with
  * them. Rejected and cancelled are ends that can be reached from several steps, so they stand beside the flow
  * instead of hanging off one arbitrary node.
@@ -10,10 +10,12 @@
 const FLOW = `
   CREATED["CREATED"] --> ACKNOWLEDGED["ACKNOWLEDGED"]
   CREATED --> WAIT_SUPPLY["WAIT<br/>SUPPLY"]
-  ACKNOWLEDGED --> REVIEW["REVIEW"]
-  REVIEW --> APPROVED["APPROVED"]
-  APPROVED --> IN_FULFILLMENT["IN<br/>FULFILLMENT"]
+  CREATED --> REVIEW["REVIEW"]
+  REVIEW --> ACKNOWLEDGED
+  REVIEW --> WAIT_SUPPLY
+  ACKNOWLEDGED --> IN_FULFILLMENT["IN<br/>FULFILLMENT"]
   WAIT_SUPPLY --> IN_FULFILLMENT
+  IN_FULFILLMENT -. all released .-> REVIEW
   IN_FULFILLMENT --> READY_FOR_DISPATCH["READY FOR<br/>DISPATCH"]
   READY_FOR_DISPATCH --> IN_TRANSIT["IN TRANSIT"]
   IN_TRANSIT --> PARTIALLY_DELIVERED["PARTIALLY<br/>DELIVERED"]

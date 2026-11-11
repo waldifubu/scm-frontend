@@ -10,8 +10,8 @@ export const STATUS_DESCRIPTIONS: Record<OrderStatus, string> = {
     'The order is accepted and a delivery date is confirmed. Every line can be covered from stock.',
   WAIT_SUPPLY:
     'The order is confirmed, but stock is missing for at least one line. It waits for supply and moves on as soon as stock can be reserved.',
-  REVIEW: 'The order is being reviewed before it is approved.',
-  APPROVED: 'The order is approved. Stock can now be reserved for its lines.',
+  REVIEW:
+    'A manager has picked the order up and not answered yet. An order whose reservations were all released lands here again. Accept or reject it from here.',
   IN_FULFILLMENT:
     'Stock is reserved. The lines are being picked and packed, and the packages put into shipments.',
   READY_FOR_DISPATCH:

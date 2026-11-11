@@ -16,7 +16,7 @@ describe('ordersPath', () => {
   })
 
   it('names the status asked for', () => {
-    expect(ordersPath(0, 'APPROVED')).toBe('/orders?status=APPROVED')
+    expect(ordersPath(0, 'REVIEW')).toBe('/orders?status=REVIEW')
   })
 
   it('adds the page after the status', () => {
@@ -30,7 +30,6 @@ describe('ORDER_STATUSES', () => {
     expect([...ORDER_STATUSES].sort()).toEqual(
       [
         'ACKNOWLEDGED',
-        'APPROVED',
         'CANCELLED',
         'COMPLETED',
         'CREATED',
