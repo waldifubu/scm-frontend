@@ -1,30 +1,18 @@
+import type { components } from './schema'
+
+/** Every schema of the backend's OpenAPI description, generated into `schema.d.ts` (`pnpm api:types`). */
+export type Schemas = components['schemas']
+
 /**
- * The few shapes the client has needed so far, written by hand after the backend's DTOs.
- *
- * The backend describes itself in OpenAPI (`/v3/api-docs`, switched on in its dev profile); once
- * more than a handful of these exist they should be generated from that instead of kept in step by
- * hand.
+ * Shapes the client uses, taken from the backend's OpenAPI description (`Schemas`, generated into
+ * `schema.d.ts`, see AGENTS.md). Only what has behaviour of its own is written here.
  */
 
 /** `UserDto`: who is logged in. `roles` are the enum names `@PreAuthorize` compares against. */
-export interface UserDto {
-  id: number
-  firstName: string | null
-  lastName: string | null
-  username: string
-  email: string
-  color: string | null
-  isActive: boolean
-  roles: string[]
-  /** The distributor rule that named this carrier in a `QUERY /users/distributors/query` answer; absent otherwise. */
-  ruleId?: number
-}
+export type UserDto = Schemas['UserDto']
 
-/** `LoginDto`. */
-export interface LoginRequest {
-  usernameOrEmail: string
-  password: string
-}
+/** `LoginRequest`, as the backend describes it. */
+export type LoginRequest = Schemas['LoginRequest']
 
 /** What a person is called: first and last name, the login only when there is neither. */
 export function displayName(user: UserDto): string {
