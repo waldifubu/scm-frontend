@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Navigate, Outlet, useRouter } from '@tanstack/react-router'
 import { logout, meQueryKey, meQueryOptions } from '../features/auth/auth'
+import { IdleLogout } from '../features/auth/IdleLogout'
 import { displayName } from '../shared/api/types'
 import { barStyle } from './color'
 import { AppSidebar } from './AppSidebar'
@@ -64,6 +65,7 @@ export function AuthedLayout() {
           )}
         </div>
       </nav>
+      {user && <IdleLogout onIdle={() => signOut.mutate()} />}
       <div className="container py-4">
         <div className="authenticated-layout">
           {user && <AppSidebar user={user} />}
