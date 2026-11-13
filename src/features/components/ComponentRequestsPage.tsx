@@ -10,7 +10,7 @@ import {
 } from './componentRequests'
 import { storehouseChoicesQueryOptions } from '../stock/storehouses'
 import { hasRole } from '../../shared/api/types'
-import { bookDeliveryBody, idsText } from './bookDelivery'
+import { bookDeliveryBody, bookedLines, idsText, type BookedLine } from './bookDelivery'
 import { formatMoment, shorten } from '../../shared/lib/format'
 import { requestStatusClass } from './requestStatus'
 import { Chevron } from '../../shared/ui/Chevron'
@@ -53,7 +53,11 @@ function BookDeliveryForm({
 }) {
   const queryClient = useQueryClient()
   const [storehouse, setStorehouse] = useState('')
-  const [notice, setNotice] = useState<{ text: string; failed: boolean } | null>(null)
+  const [notice, setNotice] = useState<{
+    text: string
+    failed: boolean
+    lines?: BookedLine[]
+  } | null>(null)
   const storehouses = useQuery({ ...storehouseChoicesQueryOptions, enabled: open })
   const book = useMutation({
     mutationFn: bookDelivery,
@@ -61,6 +65,7 @@ function BookDeliveryForm({
       setNotice({
         text: `${rows.length === 1 ? 'One request' : `${rows.length} requests`} booked into stock.`,
         failed: false,
+        lines: bookedLines(rows),
       })
       onBooked()
       await Promise.all([
@@ -105,13 +110,17 @@ function BookDeliveryForm({
               value={storehouse}
               onChange={(event) => setStorehouse(event.target.value)}
             >
-              <option value="">Choose a storehouse…</option>
+              <option value="">Choose automatically</option>
               {(storehouses.data ?? []).map((choice) => (
                 <option key={choice.id} value={choice.id}>
                   {choice.name}
                 </option>
               ))}
             </select>
+            <div className="form-text">
+              Automatically: each part goes to the storehouse that already holds most of the rest of
+              its product.
+            </div>
             {storehouses.error && (
               <div className="form-text text-danger">{storehouses.error.message}</div>
             )}
@@ -128,7 +137,16 @@ function BookDeliveryForm({
           </div>
           <div className="card-footer" style={{ minHeight: '3rem' }} role="status">
             {notice && (
-              <span className={notice.failed ? 'text-danger' : 'text-success'}>{notice.text}</span>
+              <div className={notice.failed ? 'text-danger' : 'text-success'}>
+                <span>{notice.text}</span>
+                {notice.lines && notice.lines.length > 0 && (
+                  <ul className="mb-0 mt-1">
+                    {notice.lines.map((line) => (
+                      <li key={line.key}>{line.text}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             )}
           </div>
         </form>

@@ -28,6 +28,10 @@ export interface ComponentRequestRow {
   assignedById?: number
   assignedByName?: string
   updated?: string
+  /** Where the goods were booked in; only in the answers of the goods receipt and of `POST /stock/book`. */
+  storehouseId?: number
+  /** The product the component belongs to; left out by the backend where there is none. */
+  productName?: string
 }
 
 /** `GET /components/requests`: the requests plus the paging figures. */
@@ -61,7 +65,8 @@ export const componentRequestsQueryOptions = (page = 0, status = '') =>
 /** What `POST /stock/book` takes: the delivered requests and the storehouse the goods arrived in. */
 export interface BookDeliveryBody {
   requestIds: number[]
-  storehouseId: number
+  /** Left out: the backend chooses per request, where the rest of the part's product is kept. */
+  storehouseId?: number
 }
 
 /** `POST /stock/book`: adds each request's quantity to the stock of its component in the storehouse; the requests end IN_STOCK. All or nothing. */

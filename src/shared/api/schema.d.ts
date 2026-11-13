@@ -187,7 +187,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  '/api/1.0/components/warehouse/{requestId}/in-stock/{storehouseId}': {
+  '/api/1.0/components/warehouse/{requestId}/in-stock': {
     parameters: {
       query?: never
       header?: never
@@ -198,6 +198,23 @@ export interface paths {
     put?: never
     /** @description **Roles:** ADMIN, WAREHOUSE */
     post: operations['receiveRequest']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/components/warehouse/{requestId}/in-stock/{storehouseId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description **Roles:** ADMIN, WAREHOUSE */
+    post: operations['receiveRequest_1']
     delete?: never
     options?: never
     head?: never
@@ -1772,6 +1789,9 @@ export interface components {
       assignedByName?: string
       /** Format: date-time */
       updated?: string
+      /** Format: int64 */
+      storehouseId?: number
+      productName?: string
     }
     TransferStockRequest: {
       /** Format: uuid */
@@ -1795,7 +1815,7 @@ export interface components {
       /** Format: int32 */
       available: number
       /** Format: int64 */
-      storehouseId: number | null
+      storehouseId: number
       storehouseName: string | null
       /** Format: date-time */
       updatedAt: string
@@ -1803,7 +1823,7 @@ export interface components {
     BookStockRequest: {
       requestIds: number[]
       /** Format: int64 */
-      storehouseId: number
+      storehouseId?: number | null
     }
     AddStockRequest: {
       /** Format: uuid */
@@ -2014,7 +2034,7 @@ export interface components {
       dueDate: string | null
       /** Format: date-time */
       created: string
-      customerName: string | null
+      customerName: string
       items: components['schemas']['OrderItemDto'][]
     }
     OrderItemDto: {
@@ -2022,11 +2042,11 @@ export interface components {
       id: number
       /** Format: int32 */
       quantity: number
-      productName: string | null
+      productName: string
       /** Format: int64 */
-      articleNo: number | null
+      articleNo: number
       /** Format: uuid */
-      sku: string | null
+      sku: string
       /** @enum {string} */
       fulfillmentStatus:
         | 'WAITING'
@@ -2120,7 +2140,7 @@ export interface components {
       /** Format: int32 */
       quantity: number
       /** Format: int64 */
-      storehouseId: number | null
+      storehouseId: number
       /** @enum {string} */
       status: 'ACTIVE' | 'RELEASED' | 'CONSUMED'
       /** Format: date-time */
@@ -2304,8 +2324,8 @@ export interface components {
       /** Format: int64 */
       id: number
       /** Format: int64 */
-      customerId: number | null
-      customerName: string | null
+      customerId: number
+      customerName: string
       /** Format: int64 */
       distributorId: number | null
       distributorName: string | null
@@ -3160,6 +3180,60 @@ export interface operations {
     }
   }
   receiveRequest: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        requestId: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['RequestComponentResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  receiveRequest_1: {
     parameters: {
       query?: never
       header?: never
