@@ -1,6 +1,7 @@
 import { api } from '../../shared/api/client'
 import { hasRole, type UserDto } from '../../shared/api/types'
 import type { OrderDto } from './orders'
+import type { OrderWorkflow } from './workflow'
 
 /** What a manager can decide about an order, each one a `POST /orders/{orderNo}/{action}`. */
 export type OrderDecision = 'review' | 'accept' | 'release' | 'reject' | 'cancel'
@@ -14,26 +15,37 @@ export const ORDER_DECISIONS: readonly OrderDecision[] = [
   'cancel',
 ]
 
-/**
- * The statuses each decision is offered in - what the backend takes, so the page does not offer a button that is
- * answered with a 409. `reject` and `cancel` stop where the goods are in a shipment (that is the shipment's
- * business) and where the order has ended.
- */
-const OPEN_STATUSES = ['CREATED', 'REVIEW', 'ACKNOWLEDGED', 'WAIT_SUPPLY', 'IN_FULFILLMENT']
-
-const OFFERED_IN: Readonly<Record<OrderDecision, readonly string[]>> = {
-  review: ['CREATED'],
-  accept: ['CREATED', 'REVIEW'],
-  // Stock is held only while the order is being fulfilled; releasing it sends the order back to REVIEW.
-  release: ['IN_FULFILLMENT'],
-  reject: OPEN_STATUSES,
-  cancel: OPEN_STATUSES,
+/** The workflow action behind each decision button. */
+const ACTION_OF: Readonly<Record<OrderDecision, string>> = {
+  review: 'REVIEW',
+  accept: 'ACCEPT',
+  release: 'RELEASE',
+  reject: 'REJECT',
+  cancel: 'CANCEL',
 }
 
-/** The decisions to offer this user for an order in this status; none for anybody but ADMIN and MANAGER. */
-export function decisionsFor(user: UserDto | null | undefined, status: unknown): OrderDecision[] {
-  if (!user || !(hasRole(user, 'ADMIN') || hasRole(user, 'MANAGER'))) return []
-  return ORDER_DECISIONS.filter((decision) => OFFERED_IN[decision].includes(String(status)))
+/**
+ * The decisions to offer this user for an order in this status, read off the backend's workflow table: a manual
+ * step from this status whose actors include one of the user's roles. A shortcut is the same action as the step it
+ * skips, so it adds no button of its own. Nothing while the table has not arrived.
+ */
+export function decisionsFor(
+  user: UserDto | null | undefined,
+  status: unknown,
+  workflow: OrderWorkflow | undefined,
+): OrderDecision[] {
+  if (!user || !workflow) return []
+  const offered = new Set(
+    workflow.transitions
+      .filter(
+        (step) =>
+          step.trigger === 'MANUAL' &&
+          step.from === status &&
+          step.actors.some((role) => hasRole(user, role)),
+      )
+      .map((step) => step.action as string),
+  )
+  return ORDER_DECISIONS.filter((decision) => offered.has(ACTION_OF[decision]))
 }
 
 /** `POST /orders/{orderNo}/{decision}`: the order as it is afterwards - for `release` the list of reservations that were

@@ -4,6 +4,7 @@ import { lazy, Suspense } from 'react'
 import { meQueryOptions } from '../auth/auth'
 import { orderQueryOptions, type OrderDto } from './orders'
 import { mayCompleteOrder } from './completeOrder'
+import { orderWorkflowQueryOptions } from './workflow'
 import { showsShipments } from './shipmentsOfOrder'
 import { CompleteOrderButton } from './CompleteOrderButton'
 import { OrderDecisions } from './OrderDecisionButtons'
@@ -24,6 +25,7 @@ export function OrderDetailsPage() {
   const { orderNumber } = route.useParams()
   const { data: order, isPending, error } = useQuery(orderQueryOptions(orderNumber))
   const { data: user } = useQuery(meQueryOptions)
+  const { data: workflow } = useQuery(orderWorkflowQueryOptions())
 
   return (
     <>
@@ -41,9 +43,12 @@ export function OrderDetailsPage() {
         </div>
       </div>
       {order && (
-        <OrderDecisions orderNumber={orderNumber} decisions={decisionsFor(user, order.status)} />
+        <OrderDecisions
+          orderNumber={orderNumber}
+          decisions={decisionsFor(user, order.status, workflow)}
+        />
       )}
-      {order && mayCompleteOrder(user, order.status) && (
+      {order && mayCompleteOrder(user, order.status, workflow) && (
         <CompleteOrderButton orderNumber={orderNumber} />
       )}
     </>

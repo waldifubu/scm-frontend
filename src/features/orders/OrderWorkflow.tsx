@@ -1,8 +1,10 @@
+import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import RenderMermaid from 'react-x-mermaid'
 import { describeStatus, statusOfNodeId } from './statusDescriptions'
-import { workflowDiagram } from './workflowDiagram'
+import { describeNode, workflowDiagram } from './workflowDiagram'
+import { orderWorkflowDiagramQueryOptions } from './workflow'
 
 // Text a size that reads next to the page's own, and a diagram that keeps that size (`useMaxWidth: false`)
 // instead of shrinking to the card: it scrolls sideways where it is wider.
@@ -35,6 +37,10 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
   const [open, setOpen] = useState(true)
   const [hovered, setHovered] = useState<string>()
   const scroller = useRef<HTMLDivElement>(null)
+  // The backend draws the flow and says what each state means; until it answers (or when it refuses - SUPPLIER and
+  // DISTRIBUTOR may not ask) the built-in diagram and descriptions stand in.
+  const { data: diagram } = useQuery(orderWorkflowDiagramQueryOptions())
+  const describe = (state: unknown) => describeNode(diagram, state) ?? describeStatus(state)
 
   // The wide diagram is wider than most cards, and the part that matters is where the order is: scroll it to the
   // middle of the view. Mermaid draws asynchronously, so wait for the highlighted node to appear.
@@ -61,12 +67,12 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
   const point = (event: MouseEvent) => {
     const node = (event.target as Element).closest?.('.node')
     const hit = statusOfNodeId(node?.id)
-    if (describeStatus(hit)) setHovered(hit)
+    if (describe(hit)) setHovered(hit)
     else if (!node) setHovered(undefined)
   }
 
   const shown = hovered ?? (typeof status === 'string' ? status : undefined)
-  const text = describeStatus(shown)
+  const text = describe(shown)
 
   return (
     <div className="card shadow-sm mt-4">
@@ -91,7 +97,7 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
               onMouseLeave={tall ? () => setHovered(undefined) : undefined}
             >
               <RenderMermaid
-                mermaidCode={workflowDiagram(status, tall ? 'TB' : 'LR')}
+                mermaidCode={workflowDiagram(status, tall ? 'TB' : 'LR', diagram)}
                 mermaidConfig={tall ? TALL_CONFIG : WIDE_CONFIG}
                 disableCopy
                 disableDownload

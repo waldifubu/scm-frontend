@@ -429,6 +429,40 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/1.0/orders/workflow': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description **Roles:** ADMIN, MANAGER, WAREHOUSE, LOGISTICS, CUSTOMER */
+    get: operations['getWorkflow']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/orders/workflow/diagram': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description **Roles:** ADMIN, MANAGER, WAREHOUSE, LOGISTICS, CUSTOMER */
+    get: operations['getDiagram']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/1.0/orders/{orderId}/release': {
     parameters: {
       query?: never
@@ -1486,7 +1520,7 @@ export interface paths {
     /** @description **Roles:** ADMIN */
     get: operations['list_1']
     put?: never
-    /** @description **Roles:** ADMIN, MANAGER */
+    /** @description **Roles:** ADMIN */
     post: operations['create_1']
     delete?: never
     options?: never
@@ -2640,6 +2674,161 @@ export interface components {
       deliveredAt: string | null
       distributorName?: string
       packageNumbers: string[]
+    }
+    OrderTransitionDto: {
+      /** @enum {string} */
+      from:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      /** @enum {string} */
+      to:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      /** @enum {string} */
+      action:
+        | 'REVIEW'
+        | 'ACCEPT'
+        | 'REJECT'
+        | 'CANCEL'
+        | 'RESERVE'
+        | 'RELEASE'
+        | 'SHIPMENT_PROGRESS'
+        | 'COMPLETE'
+      /** @enum {string} */
+      trigger: 'MANUAL' | 'COMPUTED'
+      actors: (
+        | 'CUSTOMER'
+        | 'MANAGER'
+        | 'SUPPLIER'
+        | 'WAREHOUSE'
+        | 'LOGISTICS'
+        | 'DISTRIBUTOR'
+        | 'ADMIN'
+      )[]
+      automatic: boolean
+      condition: string | null
+      label: string | null
+      shortcut: boolean
+    }
+    OrderWorkflowResponse: {
+      /** @enum {string} */
+      initialStatus:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      statuses: (
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      )[]
+      transitions: components['schemas']['OrderTransitionDto'][]
+    }
+    OrderDiagramEdgeDto: {
+      /** @enum {string} */
+      from:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      /** @enum {string} */
+      to:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      /** @enum {string} */
+      kind: 'FORWARD' | 'BACK'
+      label: string | null
+    }
+    OrderDiagramNodeDto: {
+      /** @enum {string} */
+      id:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      label: string
+      description: string
+    }
+    OrderWorkflowDiagramResponse: {
+      nodes: components['schemas']['OrderDiagramNodeDto'][]
+      edges: components['schemas']['OrderDiagramEdgeDto'][]
+      ends: (
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      )[]
     }
     OrderHistoryEntryDto: {
       /** Format: int64 */
@@ -4506,6 +4695,110 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['PageResponseOrderSummaryDto']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  getWorkflow: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['OrderWorkflowResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  getDiagram: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['OrderWorkflowDiagramResponse']
         }
       }
       /** @description Not logged in, or the session has expired - log in again. */
