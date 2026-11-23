@@ -11,6 +11,9 @@ import {
 import { hasRole } from '../../shared/api/types'
 import { DEFAULT_QTY, requestComponentsBody, uncoveredSkus } from './componentRequest'
 import { Chevron } from '../../shared/ui/Chevron'
+import { NewComponentForm } from './NewComponentForm'
+import { ArticleLookup } from './ArticleLookup'
+import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
@@ -295,6 +298,8 @@ export function ComponentsPage() {
   const canRequest = user
     ? ['ADMIN', 'MANAGER', 'WAREHOUSE'].some((role) => hasRole(user, role))
     : false
+  // `POST /components` is for admins and managers.
+  const canCreate = user ? ['ADMIN', 'MANAGER'].some((role) => hasRole(user, role)) : false
   const toggle = (sku: string) =>
     setSelected((current) =>
       current.includes(sku) ? current.filter((value) => value !== sku) : [...current, sku],
@@ -303,7 +308,12 @@ export function ComponentsPage() {
     <>
       <div className="card shadow-sm">
         <div className="card-body">
-          <PageTitle icon="components">Components</PageTitle>
+          <div className="d-flex flex-wrap align-items-center gap-3">
+            <PageTitle icon="components" className="me-auto">
+              Components
+            </PageTitle>
+            <ArticleLookup />
+          </div>
         </div>
         <ComponentsTable
           page={page}
@@ -314,6 +324,11 @@ export function ComponentsPage() {
         />
       </div>
       <Outlet />
+      {canCreate && (
+        <NewRuleToggle label="New Component" formId="new-component-form" icon={<NewRuleIcon />}>
+          {(close) => <NewComponentForm onDone={close} />}
+        </NewRuleToggle>
+      )}
       {canRequest && (
         <>
           <button

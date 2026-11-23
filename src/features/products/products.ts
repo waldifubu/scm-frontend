@@ -74,3 +74,62 @@ export function updateProduct(articleNo: string, update: ProductUpdate): Promise
     body: JSON.stringify({ articleNo: Number(articleNo), ...update }),
   })
 }
+
+/** What `POST /products` takes: the article number is the product's identity, so it is typed once and never changed. */
+export interface NewProductBody {
+  articleNo: number
+  name: string
+  description?: string
+  unitPrice: number
+  weight: number
+}
+
+/** `POST /products` (admins and managers): a product without a bill of materials - its components are made one by one. */
+export function createProduct(body: NewProductBody): Promise<ProductDto> {
+  return api<ProductDto>('/products', { method: 'POST', body: JSON.stringify(body) })
+}
+
+/** `DELETE /products/{id}` by the database id (409 while an order or stock still names the product). */
+export function deleteProduct(id: number): Promise<unknown> {
+  return api(`/products/${id}`, { method: 'DELETE' })
+}
+
+/** The form of a new product as text. */
+export interface NewProductForm {
+  articleNo: string
+  name: string
+  description: string
+  unitPrice: string
+  weight: string
+}
+
+export const emptyNewProduct: NewProductForm = {
+  articleNo: '',
+  name: '',
+  description: '',
+  unitPrice: '',
+  weight: '',
+}
+
+/** What is wrong with the form, or `null`: the rules the backend answers with a 400. */
+export function newProductProblem(form: NewProductForm): string | null {
+  if (!/^\d+$/.test(form.articleNo.trim()) || Number(form.articleNo) < 1)
+    return 'Article number has to be a whole number of at least 1.'
+  if (form.name.trim() === '') return 'Name must not be empty.'
+  if (form.unitPrice.trim() === '' || !(Number(form.unitPrice) >= 0))
+    return 'Unit price has to be a number, not negative.'
+  if (form.weight.trim() === '' || !(Number(form.weight) >= 0))
+    return 'Weight has to be a number, not negative.'
+  return null
+}
+
+export function newProductBody(form: NewProductForm): NewProductBody {
+  const body: NewProductBody = {
+    articleNo: Number(form.articleNo),
+    name: form.name.trim(),
+    unitPrice: Number(form.unitPrice),
+    weight: Number(form.weight),
+  }
+  if (form.description.trim() !== '') body.description = form.description.trim()
+  return body
+}

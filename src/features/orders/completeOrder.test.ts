@@ -7,6 +7,7 @@ const user = (...roles: string[]): UserDto => ({
   firstName: 'Test',
   lastName: 'User',
   username: 'test',
+  userType: 'customer',
   email: 'test@example.invalid',
   color: null,
   isActive: true,

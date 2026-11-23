@@ -1,8 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, Outlet } from '@tanstack/react-router'
 import {
+  canRecycle,
+  packageStatusBadgeClass,
+  packageTypeBadgeClass,
   DEFAULT_SHIPMENT_PACKAGE_STATUS,
+  recycleShipmentPackage,
   SHIPMENT_PACKAGE_STATUSES,
   shipmentPackagesQueryOptions,
   type ShipmentPackageFilter,
@@ -11,11 +15,32 @@ import {
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
+import { RecycleIcon } from './RecycleIcon'
+import { NewContainerForm } from './NewContainerForm'
+import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
+import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
 
 const DATE_COLUMNS = new Set(['updatedAt', 'createdAt', 'dispatchedAt', 'packedAt', 'dueDate'])
-const HIDDEN_COLUMNS = new Set(['items', 'weight', 'packageWeight', 'length', 'width', 'height'])
+const HIDDEN_COLUMNS = new Set([
+  'items',
+  'weight',
+  'packageWeight',
+  'length',
+  'width',
+  'height',
+  'volume',
+  'customerId',
+])
 
 function renderCell(column: string, value: unknown) {
+  if (column === 'status' && typeof value === 'string') {
+    return <span className={`badge ${packageStatusBadgeClass(value)}`}>{value}</span>
+  }
+  if ((column === 'type' || column === 'shipmentPackageType') && typeof value === 'string') {
+    return (
+      <span className={`badge ${packageTypeBadgeClass(value)}`}>{value.replaceAll('_', ' ')}</span>
+    )
+  }
   if (DATE_COLUMNS.has(column) && typeof value === 'string') {
     const date = new Date(value)
     if (!Number.isNaN(date.getTime())) {
@@ -54,6 +79,11 @@ export function ShipmentPackagesPage() {
   }
   const { data, isPending, error } = useQuery(shipmentPackagesQueryOptions(filter))
   const items = data?.content ?? []
+  const queryClient = useQueryClient()
+  // A row without an items list is not known to be empty, so it is never offered for recycling.
+  const recyclable = (item: Record<string, unknown>) =>
+    Array.isArray(item.items) && canRecycle(item.status, item.items.length)
+  const anyRecyclable = items.some(recyclable)
   const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
     (c) => !HIDDEN_COLUMNS.has(c),
   )
@@ -144,6 +174,7 @@ export function ShipmentPackagesPage() {
                     {columns.map((column) => (
                       <th key={column}>{column}</th>
                     ))}
+                    {anyRecyclable && <th />}
                   </tr>
                 </thead>
                 <tbody>
@@ -160,6 +191,26 @@ export function ShipmentPackagesPage() {
                           </Link>
                         </td>
                       ))}
+                      {anyRecyclable && (
+                        <td className="text-end">
+                          {recyclable(item) && (
+                            <DeleteWithConfirm
+                              label="Recycle"
+                              icon={<RecycleIcon />}
+                              title="Recycle container"
+                              onDelete={() => recycleShipmentPackage(cell(item.id))}
+                              onDeleted={() => {
+                                void queryClient.invalidateQueries({
+                                  queryKey: ['shipment-packages'],
+                                })
+                              }}
+                            >
+                              Recycle empty container {cell(item.packageNumber) || cell(item.id)}?
+                              It is deleted for good.
+                            </DeleteWithConfirm>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -184,6 +235,9 @@ export function ShipmentPackagesPage() {
           </>
         )}
       </div>
+      <NewRuleToggle label="New Container" formId="new-container-form" icon={<NewRuleIcon />}>
+        {(close) => <NewContainerForm onDone={close} />}
+      </NewRuleToggle>
       <Outlet />
     </>
   )

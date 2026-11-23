@@ -77,3 +77,30 @@ export function barStyle(color: string | null | undefined): BarStyle | null {
   cache.set(background, style)
   return style
 }
+
+/**
+ * The text colour for a badge painted in this colour, or `null` when the colour means nothing.
+ *
+ * Unlike `barStyle` this prefers white: a mid-dark colour such as Bootstrap's blue (`rgb(13, 110, 253)`) is a hair
+ * closer to black by pure contrast ratio, yet reads better with white text. Black only where the ground is
+ * clearly light (luminance above 0.3, which is where white falls below a contrast of 3:1).
+ */
+export function badgeTextColor(color: string | null | undefined): '#fff' | '#000' | null {
+  const background = color?.trim()
+  if (!background) return null
+  const rgb = onWhite(background)
+  if (!rgb) return null
+  return luminance(rgb) > 0.3 ? '#000' : '#fff'
+}
+
+/**
+ * The colour as `#rrggbb`, which is what `<input type="color">` takes and gives, or `null` for something that is no
+ * CSS colour. A translucent colour is flattened on white, as everywhere in this file.
+ */
+export function toHex(color: string | null | undefined): string | null {
+  const value = color?.trim()
+  if (!value) return null
+  const rgb = onWhite(value)
+  if (!rgb) return null
+  return `#${rgb.map((channel) => Math.round(channel).toString(16).padStart(2, '0')).join('')}`
+}

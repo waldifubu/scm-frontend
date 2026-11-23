@@ -78,6 +78,29 @@ export async function createPackage(lines: PackingLine[]): Promise<string> {
   return typeof body?.message === 'string' ? body.message : 'Package created.'
 }
 
+/**
+ * What packing a whole order means: every packable line with all that is left of it. A line with nothing
+ * remaining (or without a usable id) is left out - `packLine` would only skip it.
+ */
+export function wholeOrderLines(items: readonly OrderItemDto[]): PackingLine[] {
+  return items.flatMap((item) => {
+    const orderItemId = Number(item.orderItemId ?? item.id)
+    const remaining = Number(item.remaining)
+    return Number.isInteger(orderItemId) && remaining > 0 ? [{ orderItemId, qty: remaining }] : []
+  })
+}
+
+/** `POST /packing/{orderNo}`: one new package holding the given lines of that order; the answer says which. */
+export async function packWholeOrder(orderNo: number, lines: PackingLine[]): Promise<string> {
+  const body = await api<{ packageNumber?: unknown; items?: unknown } | null>(
+    `/packing/${encodeURIComponent(String(orderNo))}`,
+    { method: 'POST', body: JSON.stringify({ items: lines }) },
+  )
+  const count = Array.isArray(body?.items) ? body.items.length : lines.length
+  const name = typeof body?.packageNumber === 'string' ? `Package ${body.packageNumber}` : 'Package'
+  return `${name} created with ${count} item${count === 1 ? '' : 's'} of order ${orderNo}.`
+}
+
 export const orderItemsQueryOptions = (filter: OrderItemFilter = {}) =>
   queryOptions({
     queryKey: ['order-items', filter] as const,

@@ -3,6 +3,8 @@ import { useState } from 'react'
 import {
   createPackage,
   packableItemsQueryOptions,
+  packWholeOrder,
+  wholeOrderLines,
   type PackableItemFilter,
   type PackingLine,
 } from './orderItems'
@@ -10,6 +12,7 @@ import { ordersQueryOptions } from '../orders/orders'
 import { OrderItemsTable } from './OrderItemsTable'
 import { PageTitle } from '../../layout/PageTitle'
 import { cell } from '../../shared/lib/format'
+import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 
 /** The order number of an order or of an item, whether it sits on the item itself or on a nested `order`. */
 function orderNoOf(row: Record<string, unknown>): string | undefined {
@@ -59,6 +62,32 @@ export function PackableItemsPage() {
       setQuantities({})
       await queryClient.invalidateQueries({ queryKey: ['packable-items'] })
       await queryClient.invalidateQueries({ queryKey: ['packages'] })
+    },
+    onError: (failure: Error) => setPackageNotice({ text: failure.message, failed: true }),
+  })
+
+  // The whole order is the lines the list shows for its number - only trustworthy when they are all on this page.
+  const [askingWhole, setAskingWhole] = useState(false)
+  const wholeNo = /^\d+$/.test(orderNo.trim()) ? Number(orderNo.trim()) : null
+  const wholeLines = wholeNo === null || !data ? [] : wholeOrderLines(data.content)
+  const wholeProblem =
+    wholeNo === null
+      ? 'Enter an order number to pack that whole order.'
+      : !data
+        ? null
+        : data.total > data.content.length
+          ? 'The order has more packable lines than one page - narrow it down or pack by quantity.'
+          : wholeLines.length === 0
+            ? 'Nothing is left to pack for this order.'
+            : null
+  const packWhole = useMutation({
+    mutationFn: () => packWholeOrder(wholeNo as number, wholeLines),
+    onSuccess: async (message) => {
+      setPackageNotice({ text: message, failed: false })
+      setQuantities({})
+      for (const key of ['packable-items', 'packages', 'shipment-packages', 'order-items']) {
+        await queryClient.invalidateQueries({ queryKey: [key] })
+      }
     },
     onError: (failure: Error) => setPackageNotice({ text: failure.message, failed: true }),
   })
@@ -151,8 +180,32 @@ export function PackableItemsPage() {
           disabled={lines.length === 0 || create.isPending}
           onClick={() => create.mutate(lines)}
         >
-          create package
+          Create Package
         </button>
+        <button
+          type="button"
+          className="btn btn-outline-success"
+          disabled={wholeProblem !== null || wholeNo === null || packWhole.isPending}
+          title={wholeProblem ?? undefined}
+          onClick={() => setAskingWhole(true)}
+        >
+          Pack whole order
+        </button>
+        {askingWhole && (
+          <ConfirmModal
+            title="Pack whole order"
+            confirmLabel="Pack whole order"
+            busy={packWhole.isPending}
+            onCancel={() => setAskingWhole(false)}
+            onConfirm={() => {
+              setPackageNotice(null)
+              packWhole.mutate(undefined, { onSettled: () => setAskingWhole(false) })
+            }}
+          >
+            Pack everything that is left of order {wholeNo} - {wholeLines.length} line
+            {wholeLines.length === 1 ? '' : 's'} - into one new package?
+          </ConfirmModal>
+        )}
         <span
           className={
             packageNotice ? (packageNotice.failed ? 'text-danger' : 'text-success') : undefined

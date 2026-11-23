@@ -3,7 +3,9 @@ import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   canAssignDistributor,
+  canChangePackages,
   canReportReady,
+  removePackageFromShipment,
   reportShipmentReady,
   shipmentQueryOptions,
   showsAssignButton,
@@ -21,6 +23,8 @@ import { AssignDistributorModal } from './AssignDistributorModal'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { LinkedValue } from '../../shared/ui/EntityLinkAnchor'
 import { ShipmentDataForm } from './ShipmentDataForm'
+import { ShipmentPackagesEditor } from './ShipmentPackagesEditor'
+import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
 
 const route = getRouteApi('/authed/shipments/$shipmentId')
 
@@ -42,6 +46,32 @@ export function ShipmentDetailsPage() {
   })
   const [notice, setNotice] = useState<string | null>(null)
   const [dataNotice, setDataNotice] = useState<string | null>(null)
+
+  // A shipment is never empty, so the last package has no Remove.
+  const removeButton = (packageId: number) =>
+    (shipment?.packages.length ?? 0) <= 1 ? (
+      <button
+        type="button"
+        className="btn btn-outline-danger btn-sm"
+        disabled
+        title="A shipment needs at least one package."
+      >
+        Remove
+      </button>
+    ) : (
+      <DeleteWithConfirm
+        label="Remove"
+        title="Remove package"
+        onDelete={() => removePackageFromShipment(shipmentId, packageId)}
+        onDeleted={() => {
+          void queryClient.invalidateQueries({ queryKey: ['shipments'] })
+          void queryClient.invalidateQueries({ queryKey: ['orders'] })
+        }}
+      >
+        Take package {packageId} out of shipment {shipmentId}? It stays packed and can be shipped
+        again.
+      </DeleteWithConfirm>
+    )
 
   const items = (shipment?.packages ?? []).flatMap((pack) =>
     pack.items.map((item) => ({ pack, item })),
@@ -101,6 +131,7 @@ export function ShipmentDetailsPage() {
                         <th className="text-end">volume (m³)</th>
                         <th className="text-end">items</th>
                         <th>packedAt</th>
+                        {canChangePackages(shipment.status) && <th />}
                       </tr>
                     </thead>
                     <tbody>
@@ -117,6 +148,9 @@ export function ShipmentDetailsPage() {
                           <td className="text-end">{formatCubicMeters(pack.volume)}</td>
                           <td className="text-end">{pack.items.length}</td>
                           <td className="text-nowrap">{formatMoment(pack.packedAt)}</td>
+                          {canChangePackages(shipment.status) && (
+                            <td className="text-end">{removeButton(pack.id)}</td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -124,6 +158,13 @@ export function ShipmentDetailsPage() {
                 </div>
               )}
             </section>
+
+            {canChangePackages(shipment.status) && (
+              <ShipmentPackagesEditor
+                key={shipment.packages.map((p) => p.id).join(',')}
+                shipment={shipment}
+              />
+            )}
 
             {items.length > 0 && (
               <section>

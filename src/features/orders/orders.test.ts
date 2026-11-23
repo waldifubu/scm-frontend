@@ -5,6 +5,7 @@ import {
   ORDER_FILTERS,
   ORDER_STATUSES,
   orderFilterLabel,
+  orderFiltersFor,
   ordersPath,
 } from './orders'
 import type { UserDto } from '../../shared/api/types'
@@ -51,6 +52,27 @@ describe('the order filters', () => {
   it('offer the groups first and then every status', () => {
     expect(ORDER_FILTERS.slice(0, 2)).toEqual(['NOT_COMPLETED', 'ALL'])
     expect(ORDER_FILTERS.slice(2)).toEqual([...ORDER_STATUSES])
+  })
+
+  it('leave out ALL for everybody but the administrator', () => {
+    const asUser = (...roles: string[]) =>
+      ({
+        id: 1,
+        firstName: 'T',
+        lastName: 'U',
+        username: 't',
+        userType: 'x',
+        email: 't@example.org',
+        color: null,
+        isActive: true,
+        roles,
+      }) as Parameters<typeof orderFiltersFor>[0]
+    expect(orderFiltersFor(asUser('ADMIN'))).toContain('ALL')
+    for (const role of ['MANAGER', 'WAREHOUSE', 'CUSTOMER']) {
+      expect(orderFiltersFor(asUser(role))).not.toContain('ALL')
+      expect(orderFiltersFor(asUser(role))).toContain('NOT_COMPLETED')
+    }
+    expect(orderFiltersFor(undefined)).not.toContain('ALL')
   })
 
   it('ask the backend for a group by its word', () => {

@@ -419,6 +419,41 @@ export function addPackagesToShipment(
   })
 }
 
+/** Packages go in and out only while the shipment is CREATED; the backend answers 409 from READY on. */
+export function canChangePackages(status: string): boolean {
+  return status === 'CREATED'
+}
+
+/**
+ * `DELETE /shipments/{id}/packages/{packageId}`: takes one package out; it stays PACKED and is free again. The backend
+ * refuses the last one (400) and a shipment that has moved on (409); the answer is the shipment as it is now.
+ */
+export function removePackageFromShipment(
+  shipmentId: number | string,
+  packageId: number,
+): Promise<ShipmentDetail> {
+  return api<ShipmentDetail>(
+    `/shipments/${encodeURIComponent(String(shipmentId))}/packages/${encodeURIComponent(String(packageId))}`,
+    { method: 'DELETE' },
+  )
+}
+
+/** `PUT /shipments/{id}/packages`: makes the shipment hold exactly these packages. An empty list is a 400. */
+export function replaceShipmentPackages(
+  shipmentId: number | string,
+  shipmentPackageIds: number[],
+): Promise<ShipmentDetail> {
+  return api<ShipmentDetail>(`/shipments/${encodeURIComponent(String(shipmentId))}/packages`, {
+    method: 'PUT',
+    body: JSON.stringify({ shipmentPackageIds }),
+  })
+}
+
+/** Why a chosen set of packages cannot be saved, or `null`: a shipment is never empty. */
+export function replacementProblem(ids: readonly number[]): string | null {
+  return ids.length === 0 ? 'A shipment needs at least one package.' : null
+}
+
 /** `PUT /shipments/{id}`: changes address, method, requested delivery date and comment; the answer is the shipment as it is now. */
 export function updateShipment(
   shipmentId: number | string,

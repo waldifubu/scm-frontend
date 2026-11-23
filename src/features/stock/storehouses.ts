@@ -46,6 +46,50 @@ export const storehouseChoicesQueryOptions = queryOptions({
   queryFn: fetchStorehouseChoices,
 })
 
+/** What the edit form holds: the four fields a storehouse may change. Optional ones are text, blank meaning none. */
+export interface StorehouseEdit {
+  name: string
+  address: string
+  city: string
+  country: string
+}
+
+const text = (value: unknown): string => (typeof value === 'string' ? value : '')
+
+/** The form's starting values from a row of the table. */
+export function storehouseEditOf(row: StorehouseDto): StorehouseEdit {
+  return {
+    name: text(row.name),
+    address: text(row.address),
+    city: text(row.city),
+    country: text(row.country),
+  }
+}
+
+/** The form may be saved once the storehouse has a name; the other fields are optional. */
+export const isStorehouseComplete = (edit: StorehouseEdit): boolean => edit.name.trim() !== ''
+
+/** An empty form, for a storehouse that does not exist yet. */
+export const emptyStorehouseEdit: StorehouseEdit = { name: '', address: '', city: '', country: '' }
+
+/** `POST /storehouses`: creates a storehouse and answers the stored row. */
+export function createStorehouse(edit: StorehouseEdit): Promise<StorehouseDto> {
+  return api<StorehouseDto>('/storehouses', { method: 'POST', body: JSON.stringify(edit) })
+}
+
+/** `PUT /storehouses/{id}`: the backend trims the text and stores blank address, city and country as none. */
+export function saveStorehouse(id: number, edit: StorehouseEdit): Promise<StorehouseDto> {
+  return api<StorehouseDto>(`/storehouses/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      name: edit.name,
+      address: edit.address,
+      city: edit.city,
+      country: edit.country,
+    }),
+  })
+}
+
 export const storehousesQueryOptions = (page = 0) =>
   queryOptions({
     queryKey: ['storehouses', 'page', page] as const,

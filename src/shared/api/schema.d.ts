@@ -61,7 +61,24 @@ export interface paths {
     }
     get?: never
     put?: never
+    /** @description **Roles:** ADMIN */
     post: operations['register']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/auth/userregister': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations['userRegister']
     delete?: never
     options?: never
     head?: never
@@ -77,22 +94,6 @@ export interface paths {
     }
     /** @description **Roles:** ADMIN, MANAGER, WAREHOUSE */
     get: operations['getComponents']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/1.0/components/': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
     put?: never
     /** @description **Roles:** ADMIN, MANAGER */
     post: operations['createComponent']
@@ -256,6 +257,42 @@ export interface paths {
     patch: operations['patchComponent']
     trace?: never
   }
+  '/api/1.0/distributor-rules': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description **Roles:** ADMIN */
+    get: operations['distributorRules']
+    put?: never
+    /** @description **Roles:** ADMIN */
+    post: operations['createDistributorRule']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/distributor-rules/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** @description **Roles:** ADMIN */
+    put: operations['updateDistributorRule']
+    post?: never
+    /** @description **Roles:** ADMIN */
+    delete: operations['deleteDistributorRule']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/1.0/lonely-packages': {
     parameters: {
       query?: never
@@ -335,6 +372,23 @@ export interface paths {
     put?: never
     /** @description **Roles:** ADMIN, MANAGER, CUSTOMER */
     post: operations['createOrder']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/orders/history': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description **Roles:** ADMIN, MANAGER, WAREHOUSE, LOGISTICS */
+    get: operations['listHistory']
+    put?: never
+    post?: never
     delete?: never
     options?: never
     head?: never
@@ -641,7 +695,8 @@ export interface paths {
     /** @description **Roles:** ADMIN, WAREHOUSE */
     put: operations['updatePackageData']
     post?: never
-    delete?: never
+    /** @description **Roles:** ADMIN, WAREHOUSE */
+    delete: operations['deleteEmptyPackage']
     options?: never
     head?: never
     patch?: never
@@ -1258,8 +1313,62 @@ export interface paths {
     /** @description **Roles:** ADMIN, WAREHOUSE */
     get: operations['getStorehouses']
     put?: never
+    /** @description **Roles:** ADMIN, WAREHOUSE */
+    post: operations['create']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/storehouses/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** @description **Roles:** ADMIN, WAREHOUSE */
+    put: operations['update']
     post?: never
     delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/supplier-rules': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** @description **Roles:** ADMIN */
+    get: operations['supplierRules']
+    put?: never
+    /** @description **Roles:** ADMIN */
+    post: operations['createSupplierRule']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/supplier-rules/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** @description **Roles:** ADMIN */
+    put: operations['updateSupplierRule']
+    post?: never
+    /** @description **Roles:** ADMIN */
+    delete: operations['deleteSupplierRule']
     options?: never
     head?: never
     patch?: never
@@ -1374,11 +1483,11 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** @description **Roles:** ADMIN, MANAGER */
+    /** @description **Roles:** ADMIN */
     get: operations['list_1']
     put?: never
     /** @description **Roles:** ADMIN, MANAGER */
-    post: operations['create']
+    post: operations['create_1']
     delete?: never
     options?: never
     head?: never
@@ -1392,7 +1501,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** @description **Roles:** ADMIN, MANAGER, LOGISTICS */
+    /** @description **Roles:** ADMIN */
     get: operations['getDistributors']
     put?: never
     post?: never
@@ -1442,13 +1551,47 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    /** @description **Roles:** ADMIN, MANAGER */
+    /** @description **Roles:** ADMIN */
     get: operations['getById']
     /** @description **Roles:** ADMIN */
-    put: operations['update']
+    put: operations['update_1']
     post?: never
     /** @description **Roles:** ADMIN */
     delete: operations['delete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/users/{id}/demote': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description **Roles:** ADMIN */
+    post: operations['demote']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/1.0/users/{id}/promote': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description **Roles:** ADMIN */
+    post: operations['promote']
+    delete?: never
     options?: never
     head?: never
     patch?: never
@@ -1477,6 +1620,7 @@ export interface components {
       color: string | null
       isActive: boolean
       roles: string[]
+      userType: string
       /** Format: int64 */
       ruleId?: number
     }
@@ -1497,6 +1641,47 @@ export interface components {
         | 'DISTRIBUTOR'
         | 'ADMIN'
       )[]
+    }
+    SupplierRuleRequest: {
+      /** Format: int64 */
+      supplierId: number
+      /** Format: int64 */
+      componentId?: number | null
+      /** Format: int64 */
+      productId?: number | null
+      /** Format: int32 */
+      priority?: number | null
+    }
+    SupplierRuleResponse: {
+      /** Format: int64 */
+      id: number
+      /** Format: int64 */
+      supplierId: number
+      supplierName: string
+      /** Format: int64 */
+      componentId: number | null
+      componentName: string | null
+      /** Format: int64 */
+      productId: number | null
+      productName: string | null
+      /** Format: int32 */
+      priority: number
+      /** Format: date-time */
+      createdAt: string | null
+    }
+    StorehouseRequest: {
+      name: string
+      address?: string | null
+      city?: string | null
+      country?: string | null
+    }
+    StorehouseResponse: {
+      /** Format: int64 */
+      id: number
+      name: string
+      address: string | null
+      city: string | null
+      country: string | null
     }
     UpdateShipmentRequest: {
       shippingAddress: string
@@ -1758,6 +1943,45 @@ export interface components {
     }
     PackageItemIdsRequest: {
       packageItemIds: number[]
+    }
+    DistributorRuleRequest: {
+      /** Format: int64 */
+      distributorId: number
+      /** Format: int64 */
+      customerId?: number | null
+      minWeight?: number | null
+      maxWeight?: number | null
+      minVolume?: number | null
+      maxVolume?: number | null
+      /** Format: int32 */
+      priority?: number | null
+    }
+    DistributorRuleResponse: {
+      /** Format: int64 */
+      id: number
+      /** Format: int64 */
+      distributorId: number
+      distributorName: string
+      /** Format: int64 */
+      customerId: number | null
+      customerName: string | null
+      minWeight: number | null
+      maxWeight: number | null
+      minVolume: number | null
+      maxVolume: number | null
+      /** Format: int32 */
+      priority: number
+    }
+    DemoteRequest: {
+      /** @enum {string} */
+      role:
+        | 'CUSTOMER'
+        | 'MANAGER'
+        | 'SUPPLIER'
+        | 'WAREHOUSE'
+        | 'LOGISTICS'
+        | 'DISTRIBUTOR'
+        | 'ADMIN'
     }
     RequestComponentResponse: {
       /** Format: int64 */
@@ -2146,16 +2370,6 @@ export interface components {
       /** Format: date-time */
       expiresAt: string | null
     }
-    Item: {
-      /** Format: uuid */
-      componentId: string
-      /** Format: int64 */
-      qty: number
-      comment?: string
-    }
-    RequestComponentsRequest: {
-      items: components['schemas']['Item'][]
-    }
     ComponentRequestDto: {
       /** Format: int64 */
       productArticleNo: number
@@ -2176,7 +2390,7 @@ export interface components {
       manufacturer: string | null
       name: string | null
       sku: string
-      articleNo: string | null
+      externalId: string | null
       /** Format: int32 */
       qty: number
       product: components['schemas']['ProductRefDto']
@@ -2185,6 +2399,16 @@ export interface components {
       /** Format: int64 */
       articleNo: number
       name: string
+    }
+    Item: {
+      /** Format: uuid */
+      componentId: string
+      /** Format: int64 */
+      qty: number
+      comment?: string
+    }
+    RequestComponentsRequest: {
+      items: components['schemas']['Item'][]
     }
     RegisterRequest: {
       firstname: string
@@ -2263,6 +2487,15 @@ export interface components {
       qty: number | null
       component: components['schemas']['ComponentResponseDto'] | null
     }
+    PageResponseSupplierRuleResponse: {
+      content: components['schemas']['SupplierRuleResponse'][]
+      /** Format: int64 */
+      total: number
+      /** Format: int32 */
+      page: number
+      /** Format: int32 */
+      size: number
+    }
     PageResponseStorehouseResponse: {
       content: components['schemas']['StorehouseResponse'][]
       /** Format: int64 */
@@ -2271,14 +2504,6 @@ export interface components {
       page: number
       /** Format: int32 */
       size: number
-    }
-    StorehouseResponse: {
-      /** Format: int64 */
-      id: number
-      name: string
-      address: string | null
-      city: string | null
-      country: string | null
     }
     PageResponseStockResponse: {
       content: components['schemas']['StockResponse'][]
@@ -2416,6 +2641,58 @@ export interface components {
       distributorName?: string
       packageNumbers: string[]
     }
+    OrderHistoryEntryDto: {
+      /** Format: int64 */
+      id: number
+      /** Format: int64 */
+      orderNo: number
+      /** Format: int64 */
+      customerId: number | null
+      customerName: string | null
+      /** @enum {string|null} */
+      previousStatus:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+        | null
+      /** @enum {string} */
+      newStatus:
+        | 'CREATED'
+        | 'ACKNOWLEDGED'
+        | 'REVIEW'
+        | 'REJECTED'
+        | 'WAIT_SUPPLY'
+        | 'IN_FULFILLMENT'
+        | 'READY_FOR_DISPATCH'
+        | 'IN_TRANSIT'
+        | 'PARTIALLY_DELIVERED'
+        | 'DELIVERED'
+        | 'CANCELLED'
+        | 'COMPLETED'
+      /** Format: date-time */
+      changedAt: string
+      /** Format: int64 */
+      changedById: number | null
+      changedByName: string | null
+    }
+    PageResponseOrderHistoryEntryDto: {
+      content: components['schemas']['OrderHistoryEntryDto'][]
+      /** Format: int64 */
+      total: number
+      /** Format: int32 */
+      page: number
+      /** Format: int32 */
+      size: number
+    }
     OrderHistoryResponse: {
       /** Format: int64 */
       id: number
@@ -2522,6 +2799,15 @@ export interface components {
     }
     PageResponsePackableItemDto: {
       content: components['schemas']['PackableItemDto'][]
+      /** Format: int64 */
+      total: number
+      /** Format: int32 */
+      page: number
+      /** Format: int32 */
+      size: number
+    }
+    PageResponseDistributorRuleResponse: {
+      content: components['schemas']['DistributorRuleResponse'][]
       /** Format: int64 */
       total: number
       /** Format: int32 */
@@ -2744,6 +3030,62 @@ export interface operations {
     }
   }
   register: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RegisterRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': Record<string, never>
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  userRegister: {
     parameters: {
       query?: never
       header?: never
@@ -3452,6 +3794,229 @@ export interface operations {
       }
     }
   }
+  distributorRules: {
+    parameters: {
+      query?: {
+        page?: number
+        size?: number
+        sort?: string
+        order?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PageResponseDistributorRuleResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  createDistributorRule: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DistributorRuleRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['DistributorRuleResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  updateDistributorRule: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DistributorRuleRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['DistributorRuleResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  deleteDistributorRule: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
   getLonelyPackageItems: {
     parameters: {
       query?: {
@@ -3757,6 +4322,66 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['OrderDetailsDto']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  listHistory: {
+    parameters: {
+      query?: {
+        page?: number
+        size?: number
+        orderNo?: number
+        status?: string
+        sort?: string
+        order?: string
+        latestOnly?: boolean
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PageResponseOrderHistoryEntryDto']
         }
       }
       /** @description Not logged in, or the session has expired - log in again. */
@@ -4768,6 +5393,58 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ShipmentPackageResponse']
         }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  deleteEmptyPackage: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        shipmentPackageId: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
       /** @description Not logged in, or the session has expired - log in again. */
       401: {
@@ -7176,6 +7853,343 @@ export interface operations {
       }
     }
   }
+  create: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StorehouseRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorehouseResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  update: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StorehouseRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StorehouseResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  supplierRules: {
+    parameters: {
+      query?: {
+        page?: number
+        size?: number
+        sort?: string
+        order?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PageResponseSupplierRuleResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  createSupplierRule: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SupplierRuleRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupplierRuleResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  updateSupplierRule: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SupplierRuleRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['SupplierRuleResponse']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  deleteSupplierRule: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
   getMyRequests: {
     parameters: {
       query?: never
@@ -7555,7 +8569,7 @@ export interface operations {
       }
     }
   }
-  create: {
+  create_1: {
     parameters: {
       query?: never
       header?: never
@@ -7779,7 +8793,7 @@ export interface operations {
       }
     }
   }
-  update: {
+  update_1: {
     parameters: {
       query?: never
       header?: never
@@ -7854,6 +8868,118 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  demote: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DemoteRequest']
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserDto']
+        }
+      }
+      /** @description Not logged in, or the session has expired - log in again. */
+      401: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description The logged-in user holds none of the roles in x-roles, or may not touch this particular resource. */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Rate limit exceeded; Retry-After says for how many seconds. */
+      429: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description Any other error. A failed bean validation (400) answers a map of field to message; everything else (400, 404, 409, 500, ...) answers ErrorDetails. */
+      default: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json':
+            | components['schemas']['ErrorDetails']
+            | components['schemas']['ValidationErrors']
+        }
+      }
+    }
+  }
+  promote: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserDto']
+        }
       }
       /** @description Not logged in, or the session has expired - log in again. */
       401: {

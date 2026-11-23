@@ -1,4 +1,4 @@
-import type { ComponentDto, ComponentPatch } from './components'
+import type { ComponentDto, ComponentPatch, NewComponentBody } from './components'
 import { cell as text } from '../../shared/lib/format'
 
 /** The edit form as text, one string per field, the way the inputs hold it. */
@@ -49,4 +49,41 @@ export function patchOf(component: ComponentDto, form: ComponentForm): Component
     patch.weight = Number(form.weight)
   if (Number(form.qty) !== Number(before.qty)) patch.qty = Number(form.qty)
   return patch
+}
+
+/** The form of a new component as text, one string per input. */
+export interface NewComponentForm extends ComponentForm {
+  /** The article number of the product it belongs to; empty until one is chosen. */
+  productArticleNo: string
+}
+
+/** Nothing typed yet; the recipe quantity starts at 1, the least a line is needed. */
+export const emptyNewComponent: NewComponentForm = {
+  productArticleNo: '',
+  name: '',
+  manufacturer: '',
+  description: '',
+  externalId: '',
+  weight: '',
+  qty: '1',
+}
+
+/** What is wrong with the form, or `null`: a product, a name, a whole quantity of at least 1, no negative weight. */
+export function newComponentProblem(form: NewComponentForm): string | null {
+  if (form.productArticleNo.trim() === '') return 'Choose the product it belongs to.'
+  return formProblem(form)
+}
+
+/** The request: the product by article number, a field left blank is left out (the backend gives a weight itself). */
+export function newComponentBody(form: NewComponentForm): NewComponentBody {
+  const body: NewComponentBody = {
+    productArticleNo: Number(form.productArticleNo),
+    name: form.name.trim(),
+    qty: Number(form.qty),
+  }
+  if (form.manufacturer.trim() !== '') body.manufacturer = form.manufacturer.trim()
+  if (form.description.trim() !== '') body.description = form.description.trim()
+  if (form.externalId.trim() !== '') body.externalId = form.externalId.trim()
+  if (form.weight.trim() !== '') body.weight = Number(form.weight)
+  return body
 }

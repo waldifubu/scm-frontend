@@ -12,6 +12,7 @@ import { queryClient } from './queryClient'
 import { AuthedLayout } from './layout/AuthedLayout'
 import { HomePage } from './features/home/HomePage'
 import { LoginPage } from './features/auth/LoginPage'
+import { RegisterPage } from './features/auth/RegisterPage'
 import { CreateOrderPage } from './features/orders/CreateOrderPage'
 import { PickingOrdersPage } from './features/picking/PickingOrdersPage'
 import { PackagesPage } from './features/packing/PackagesPage'
@@ -28,6 +29,10 @@ import { StockOverviewPage } from './features/stock/StockOverviewPage'
 import { StockPage } from './features/stock/StockPage'
 import { ComponentRequestsPage } from './features/components/ComponentRequestsPage'
 import { MyRequestsPage } from './features/components/MyRequestsPage'
+import { UsersPage } from './features/users/UsersPage'
+import { OrderHistoryPage } from './features/orders/OrderHistoryPage'
+import { SupplierRulesPage } from './features/rules/SupplierRulesPage'
+import { DistributorRulesPage } from './features/rules/DistributorRulesPage'
 import { StorehousesPage } from './features/stock/StorehousesPage'
 import { ComponentsPage } from './features/components/ComponentsPage'
 import { ComponentDetailsPage } from './features/components/ComponentDetailsPage'
@@ -66,6 +71,17 @@ const loginRoute = createRoute({
     if (user) throw redirect({ to: '/' })
   },
   component: LoginPage,
+})
+
+/** Public like the login: a visitor makes an account for themselves; somebody logged in goes to the start. */
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/register',
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.ensureQueryData(meQueryOptions)
+    if (user) throw redirect({ to: '/' })
+  },
+  component: RegisterPage,
 })
 
 /**
@@ -133,6 +149,12 @@ const orderDetailsRoute = createRoute({
   component: OrderDetailsPage,
 })
 
+const orderHistoryRoute = createRoute({
+  getParentRoute: () => authedRoute,
+  path: '/order-history',
+  component: OrderHistoryPage,
+})
+
 const orderItemsRoute = createRoute({
   getParentRoute: () => authedRoute,
   path: '/order-items',
@@ -173,6 +195,24 @@ const myRequestsRoute = createRoute({
   getParentRoute: () => authedRoute,
   path: '/my-requests',
   component: MyRequestsPage,
+})
+
+const usersRoute = createRoute({
+  getParentRoute: () => authedRoute,
+  path: '/users',
+  component: UsersPage,
+})
+
+const supplierRulesRoute = createRoute({
+  getParentRoute: () => authedRoute,
+  path: '/supplier-rules',
+  component: SupplierRulesPage,
+})
+
+const distributorRulesRoute = createRoute({
+  getParentRoute: () => authedRoute,
+  path: '/distributor-rules',
+  component: DistributorRulesPage,
 })
 
 const stockOverviewRoute = createRoute({
@@ -267,10 +307,12 @@ const productEditRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
+  registerRoute,
   authedRoute.addChildren([
     indexRoute,
     orderItemsRoute,
     packableItemsRoute,
+    orderHistoryRoute,
     shipmentPackagesRoute.addChildren([shipmentPackageDetailsRoute]),
     shippableItemsRoute.addChildren([shippableDetailsRoute]),
     shipmentsRoute.addChildren([shipmentDetailsRoute]),
@@ -278,6 +320,9 @@ const routeTree = rootRoute.addChildren([
     pickingOrdersRoute,
     createOrderRoute,
     storehousesRoute,
+    usersRoute,
+    supplierRulesRoute,
+    distributorRulesRoute,
     requestsRoute,
     myRequestsRoute,
     stockOverviewRoute,

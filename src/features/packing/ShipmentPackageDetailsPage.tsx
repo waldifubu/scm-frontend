@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getRouteApi } from '@tanstack/react-router'
+import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import {
@@ -7,10 +7,15 @@ import {
   shipmentPackageQueryOptions,
   deleteShipmentItem,
   completeShipmentPackage,
+  canRecycle,
+  recycleShipmentPackage,
   updateShipmentPackage,
   type ShipmentPackageDto,
 } from './shipmentPackages'
 import { cell } from '../../shared/lib/format'
+import { RecycleIcon } from './RecycleIcon'
+import { ReplaceContents } from './ReplaceContents'
+import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
 
 const route = getRouteApi('/authed/shipment-packages/$shipmentPackageId')
 
@@ -140,6 +145,28 @@ function EditForm({
         </div>
       </div>
     </form>
+  )
+}
+
+/** The red button under the items of an empty OPEN container: deletes it after asking. */
+function RecycleContainer({ id }: { id: string }) {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  return (
+    <div className="mt-3">
+      <DeleteWithConfirm
+        label="Recycle"
+        icon={<RecycleIcon />}
+        title="Recycle container"
+        onDelete={() => recycleShipmentPackage(id)}
+        onDeleted={() => {
+          void queryClient.invalidateQueries({ queryKey: ['shipment-packages'] })
+          void navigate({ to: '/shipment-packages' })
+        }}
+      >
+        Recycle this empty container? It is deleted for good.
+      </DeleteWithConfirm>
+    </div>
   )
 }
 
@@ -367,6 +394,17 @@ export function ShipmentPackageDetailsPage() {
                   >
                     {itemNotice.text}
                   </p>
+                )}
+                {key === 'items' &&
+                  canRecycle(pack.status, Array.isArray(value) ? value.length : 0) && (
+                    <RecycleContainer key={`recycle-${shipmentPackageId}`} id={shipmentPackageId} />
+                  )}
+                {key === 'items' && (pack.status === undefined || pack.status === 'OPEN') && (
+                  <ReplaceContents
+                    key={`replace-${shipmentPackageId}-${isRowList(value) ? value.map((row) => cell(row.id)).join(',') : ''}`}
+                    id={shipmentPackageId}
+                    items={isRowList(value) ? value : []}
+                  />
                 )}
                 {key === 'items' && (
                   <CompletePackage

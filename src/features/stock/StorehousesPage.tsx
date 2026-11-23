@@ -3,12 +3,24 @@ import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
 import { meQueryOptions } from '../auth/auth'
 import { storehousesQueryOptions } from './storehouses'
+import { StorehouseEditForm } from './StorehouseEditForm'
+import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
 import { hasRole } from '../../shared/api/types'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
 
-function StorehousesTable({ page, onPage }: { page: number; onPage: (page: number) => void }) {
+function StorehousesTable({
+  page,
+  onPage,
+  editingId,
+  onEdit,
+}: {
+  page: number
+  onPage: (page: number) => void
+  editingId: number | null
+  onEdit: (id: number) => void
+}) {
   const { data, isPending, error } = useQuery(storehousesQueryOptions(page))
 
   if (isPending) return <p className="p-3 mb-0">Loading storehouses…</p>
@@ -27,6 +39,7 @@ function StorehousesTable({ page, onPage }: { page: number; onPage: (page: numbe
               {columns.map((column) => (
                 <th key={column}>{column}</th>
               ))}
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -47,6 +60,19 @@ function StorehousesTable({ page, onPage }: { page: number; onPage: (page: numbe
                     )}
                   </td>
                 ))}
+                <td className="text-end">
+                  {typeof item.id === 'number' && (
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${
+                        item.id === editingId ? 'btn-primary' : 'btn-outline-primary'
+                      }`}
+                      onClick={() => onEdit(item.id as number)}
+                    >
+                      Edit
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -71,17 +97,43 @@ function StorehousesTable({ page, onPage }: { page: number; onPage: (page: numbe
 export function StorehousesPage() {
   const { data: user } = useQuery(meQueryOptions)
   const [page, setPage] = useState(0)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const allowed = !!user && (hasRole(user, 'WAREHOUSE') || hasRole(user, 'ADMIN'))
+  // The same query the table runs, so the form reads the row from the cache and follows a save.
+  const { data } = useQuery({ ...storehousesQueryOptions(page), enabled: allowed })
   if (!user) return null
-  if (!hasRole(user, 'WAREHOUSE') && !hasRole(user, 'ADMIN')) {
+  if (!allowed) {
     return <p className="text-danger">Only warehouse staff and admins may see the storehouses.</p>
   }
+  const editing = data?.content.find((row) => row.id === editingId)
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
-        <PageTitle icon="storehouses">Storehouses</PageTitle>
+    <>
+      <div className="card shadow-sm">
+        <div className="card-body">
+          <PageTitle icon="storehouses">Storehouses</PageTitle>
+        </div>
+        <StorehousesTable
+          page={page}
+          onPage={setPage}
+          editingId={editingId}
+          onEdit={setEditingId}
+        />
       </div>
-      <StorehousesTable page={page} onPage={setPage} />
-    </div>
+      {editing && typeof editing.id === 'number' && (
+        <div className="card shadow-sm mt-4">
+          <div className="card-body">
+            <StorehouseEditForm
+              key={JSON.stringify(editing)}
+              storehouse={editing as typeof editing & { id: number }}
+              onClose={() => setEditingId(null)}
+            />
+          </div>
+        </div>
+      )}
+      <NewRuleToggle label="New Storehouse" formId="new-storehouse-form" icon={<NewRuleIcon />}>
+        {(close) => <StorehouseEditForm onClose={close} />}
+      </NewRuleToggle>
+    </>
   )
 }

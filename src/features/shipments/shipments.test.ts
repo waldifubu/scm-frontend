@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import {
+  canChangePackages,
+  removePackageFromShipment,
+  replaceShipmentPackages,
+  replacementProblem,
   ASSIGNABLE_STATES,
   assignDistributor,
   acceptShipment,
@@ -824,6 +828,36 @@ describe('addPackagesToShipment', () => {
     await expect(addPackagesToShipment(31, [5])).rejects.toMatchObject({
       status: 409,
       message: 'Shipment 31 is READY',
+    })
+  })
+})
+
+describe('package changes of a shipment', () => {
+  it('allows them only while CREATED', () => {
+    expect(canChangePackages('CREATED')).toBe(true)
+    expect(canChangePackages('READY')).toBe(false)
+  })
+
+  it('refuses an empty selection', () => {
+    expect(replacementProblem([])).toMatch(/at least one/)
+    expect(replacementProblem([3])).toBeNull()
+  })
+
+  it('calls DELETE for one package and PUT with the ids for a replacement', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(() => Promise.resolve(new Response('{"id":7}', { status: 200 })))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await removePackageFromShipment(7, 103)
+    await replaceShipmentPackages(7, [101, 102, 104])
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/1.0/shipments/7/packages/103')
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: 'DELETE' })
+    expect(fetchMock.mock.calls[1]?.[0]).toBe('/api/1.0/shipments/7/packages')
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
+      method: 'PUT',
+      body: '{"shipmentPackageIds":[101,102,104]}',
     })
   })
 })

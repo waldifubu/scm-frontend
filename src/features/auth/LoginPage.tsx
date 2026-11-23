@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRouter, useSearch } from '@tanstack/react-router'
+import { Link, useRouter, useSearch } from '@tanstack/react-router'
 import { useRef, useState, type SubmitEvent } from 'react'
 import { fetchMe, login, meQueryKey } from './auth'
 import { ApiError } from '../../shared/api/client'
@@ -125,6 +125,11 @@ export function LoginPage() {
               )}
               Sign in
             </button>
+            <p className="text-center mt-3 mb-0">
+              <Link to="/register" className="text-decoration-none">
+                Create an account
+              </Link>
+            </p>
           </form>
         </div>
       </div>

@@ -6,6 +6,8 @@ import { orderQueryOptions, type OrderDto } from './orders'
 import { mayCompleteOrder } from './completeOrder'
 import { showsShipments } from './shipmentsOfOrder'
 import { CompleteOrderButton } from './CompleteOrderButton'
+import { OrderDecisions } from './OrderDecisionButtons'
+import { decisionsFor } from './orderDecisions'
 import { OrderLinesTable } from './OrderLinesTable'
 import { OrderShipments } from './OrderShipments'
 import { cell } from '../../shared/lib/format'
@@ -38,6 +40,9 @@ export function OrderDetailsPage() {
           {order && <OrderFields order={order} orderNumber={orderNumber} />}
         </div>
       </div>
+      {order && (
+        <OrderDecisions orderNumber={orderNumber} decisions={decisionsFor(user, order.status)} />
+      )}
       {order && mayCompleteOrder(user, order.status) && (
         <CompleteOrderButton orderNumber={orderNumber} />
       )}

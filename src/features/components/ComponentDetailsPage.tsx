@@ -1,8 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getRouteApi, Link } from '@tanstack/react-router'
+import { getRouteApi, Link, useNavigate } from '@tanstack/react-router'
 import { useState, type ReactNode } from 'react'
 import { meQueryOptions } from '../auth/auth'
-import { componentQueryOptions, patchComponent, type ComponentDto } from './components'
+import {
+  componentQueryOptions,
+  deleteComponent,
+  patchComponent,
+  type ComponentDto,
+} from './components'
+import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
 import { hasRole } from '../../shared/api/types'
 import { formOf, formProblem, patchOf, type ComponentForm } from './componentEdit'
 import { cell } from '../../shared/lib/format'
@@ -160,6 +166,10 @@ export function ComponentDetailsPage() {
   const { data: component, isPending, error } = useQuery(componentQueryOptions(sku))
   const { data: user } = useQuery(meQueryOptions)
   const [notice, setNotice] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  // `DELETE /components/{id}` is the administrator's alone.
+  const canDelete = user ? hasRole(user, 'ADMIN') : false
   // The roles `PATCH /components/{sku}` lets through; anybody else would get a 403.
   const canEdit = user
     ? ['ADMIN', 'MANAGER', 'WAREHOUSE'].some((role) => hasRole(user, role))
@@ -187,6 +197,23 @@ export function ComponentDetailsPage() {
               notice={notice}
               onNotice={setNotice}
             />
+            {canDelete && typeof component.id === 'number' && (
+              <div className="mt-4">
+                <DeleteWithConfirm
+                  title={`Delete component ${cell(component.name) || sku}?`}
+                  onDelete={() => deleteComponent(component.id as number)}
+                  onDeleted={async () => {
+                    await queryClient.invalidateQueries({ queryKey: ['components'] })
+                    await navigate({ to: '/components' })
+                  }}
+                >
+                  <p className="mb-0">
+                    The component is removed from the bill of materials of its product for good. Not
+                    possible while something still refers to it.
+                  </p>
+                </DeleteWithConfirm>
+              </div>
+            )}
             {lists.map(([key, value]) => {
               const rows = (value as unknown[]).filter(
                 (row): row is Record<string, unknown> => typeof row === 'object' && row !== null,

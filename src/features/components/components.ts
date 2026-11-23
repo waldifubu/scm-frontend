@@ -1,5 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import { api } from '../../shared/api/client'
+import { api, ApiError } from '../../shared/api/client'
 import { withPage } from '../../shared/api/pageQuery'
 import { cell } from '../../shared/lib/format'
 
@@ -36,6 +36,22 @@ export const componentQueryOptions = (sku: string) =>
     queryKey: ['components', sku] as const,
     queryFn: () => fetchComponent(sku),
   })
+
+/**
+ * `GET /components/article/{articleNo}`: one component by its external ID. The path says article, but the backend matches the
+ * component's unique `externalId` - the reference the outside world knows it by - and answers 404 for none.
+ */
+export function fetchComponentByArticle(articleNo: string): Promise<ComponentDto> {
+  return api<ComponentDto>(`/components/article/${encodeURIComponent(articleNo)}`)
+}
+
+/** What the lookup tells the person when it fails: a 404 is "none", anything else is the backend's own text. */
+export function lookupMessage(error: unknown, articleNo: string): string {
+  if (error instanceof ApiError && error.status === 404) {
+    return `No component with external ID ${articleNo}.`
+  }
+  return error instanceof Error ? error.message : 'The lookup failed.'
+}
 
 /** The sku of a component: what the details are addressed by. */
 export function componentSku(component: ComponentDto): string {
@@ -93,3 +109,47 @@ export const supplierResolutionQueryOptions = (skus: string[], enabled: boolean)
     queryFn: () => resolveSuppliers(skus),
     enabled: enabled && skus.length > 0,
   })
+
+/** What `POST /components` takes: the product by its article number, the rest optional (blank fields are left out). */
+export interface NewComponentBody {
+  productArticleNo: number
+  name: string
+  manufacturer?: string
+  articleNo?: string
+  description?: string
+  externalId?: string
+  weight?: number
+  qty?: number
+}
+
+/** `POST /components`: a new bill-of-materials line of one product. The SKU is the backend's to give. */
+export function createComponent(body: NewComponentBody): Promise<ComponentDto> {
+  return api<ComponentDto>('/components', { method: 'POST', body: JSON.stringify(body) })
+}
+
+/** `DELETE /components/{id}` (admins only): 409 while something still refers to the component. */
+export function deleteComponent(id: number): Promise<unknown> {
+  return api(`/components/${id}`, { method: 'DELETE' })
+}
+
+/** A product to pick in the form of a new component: its article number, and what to call it. */
+export interface ProductChoice {
+  articleNo: number
+  label: string
+}
+
+/** The products a component can belong to (`GET /products?size=500`), by article number. */
+export const productChoicesQueryOptions = queryOptions({
+  queryKey: ['products', 'choices'] as const,
+  queryFn: async (): Promise<ProductChoice[]> => {
+    const body = await api<{ content?: Record<string, unknown>[] } | Record<string, unknown>[]>(
+      '/products?size=500',
+    )
+    const rows = Array.isArray(body) ? body : (body.content ?? [])
+    return rows.flatMap((row) =>
+      typeof row.articleNo === 'number'
+        ? [{ articleNo: row.articleNo, label: `${cell(row.name)} (${row.articleNo})` }]
+        : [],
+    )
+  },
+})

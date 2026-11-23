@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { meQueryOptions } from '../auth/auth'
 import { displayName } from '../../shared/api/types'
+import { ProduceButton } from '../stock/ProduceButton'
+import { mayProduce } from '../stock/production'
 
 /** Who is logged in and with which roles. */
 export function WelcomeCard() {
@@ -23,6 +25,11 @@ export function WelcomeCard() {
             ))
           )}
         </p>
+        {mayProduce(user) && (
+          <div className="mt-3">
+            <ProduceButton />
+          </div>
+        )}
       </div>
     </div>
   )

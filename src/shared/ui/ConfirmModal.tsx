@@ -9,6 +9,8 @@ interface Props {
   danger?: boolean
   /** While the call is under way: neither button nor Escape closes the window, so its answer is not hidden. */
   busy?: boolean
+  /** Holds the confirming button back, e.g. until a word has been typed. */
+  confirmDisabled?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -24,6 +26,7 @@ export function ConfirmModal({
   confirmLabel,
   danger = false,
   busy = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: Props) {
@@ -77,8 +80,8 @@ export function ConfirmModal({
                 type="button"
                 className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`}
                 onClick={onConfirm}
-                disabled={busy}
-                autoFocus
+                disabled={busy || confirmDisabled}
+                autoFocus={!confirmDisabled}
               >
                 {confirmLabel}
               </button>

@@ -18,6 +18,51 @@ export const SHIPMENT_PACKAGE_STATUSES = ['OPEN', 'PACKED', 'DISPATCHED'] as con
 /** The status the backend lists when none is asked for. */
 export const DEFAULT_SHIPMENT_PACKAGE_STATUS = 'OPEN'
 
+/** Badge colour of a container's status: being filled, closed and ready to ship, gone with its shipment. */
+export function packageStatusBadgeClass(status: string): string {
+  switch (status) {
+    case 'OPEN':
+      return 'text-bg-warning'
+    case 'PACKED':
+      return 'text-bg-success'
+    case 'DISPATCHED':
+      return 'text-bg-primary'
+    default:
+      return 'text-bg-secondary'
+  }
+}
+
+/**
+ * Badge colour of a container type, by what it is made of or how it travels: cardboard and wood in warm colours,
+ * the pallets in blues, the hard containers in greys, crates and bags in greens.
+ */
+export function packageTypeBadgeClass(type: string): string {
+  switch (type) {
+    case 'CARTON':
+      return 'bg-warning-subtle text-warning-emphasis'
+    case 'WOODEN_BOX':
+      return 'bg-danger-subtle text-danger-emphasis'
+    case 'PALLET':
+      return 'text-bg-primary'
+    case 'EURO_PALLET':
+      return 'text-bg-info'
+    case 'PALLET_CAGE':
+      return 'bg-primary-subtle text-primary-emphasis'
+    case 'STACKABLE_CONTAINER':
+      return 'text-bg-secondary'
+    case 'METAL_CONTAINER':
+      return 'text-bg-dark'
+    case 'DRUM':
+      return 'bg-secondary-subtle text-secondary-emphasis'
+    case 'PLASTIC_CRATE':
+      return 'text-bg-success'
+    case 'BAG':
+      return 'bg-success-subtle text-success-emphasis'
+    default:
+      return 'text-bg-light border'
+  }
+}
+
 export const SHIPMENT_PACKAGE_TYPES = [
   'CARTON',
   'WOODEN_BOX',
@@ -42,6 +87,19 @@ export async function deleteShipmentItem(
     { method: 'DELETE' },
   )
   return typeof body?.message === 'string' ? body.message : 'Item removed.'
+}
+
+/**
+ * `DELETE /packing/shipment/{shipmentPackageId}`: recycles an empty container. The backend answers 409 for one that
+ * still holds items or has left the OPEN state, and 404 for one that is gone.
+ */
+export async function recycleShipmentPackage(shipmentPackageId: string): Promise<void> {
+  await api(`/packing/shipment/${encodeURIComponent(shipmentPackageId)}`, { method: 'DELETE' })
+}
+
+/** Only an OPEN container without items can be recycled - the one the backend accepts. */
+export function canRecycle(status: unknown, itemCount: number): boolean {
+  return (status === undefined || status === 'OPEN') && itemCount === 0
 }
 
 /**

@@ -55,6 +55,15 @@ export type OrderFilter = OrderStatus | OrderGroup
 /** The choices of the status filter: the groups first, then each status. */
 export const ORDER_FILTERS: readonly OrderFilter[] = [...ORDER_GROUPS, ...ORDER_STATUSES]
 
+/**
+ * The choices of the dropdown for this user. `ALL` is the administrator's alone (the backend answers everybody else
+ * with a 403), so for anybody else it is not offered.
+ */
+export function orderFiltersFor(user: UserDto | undefined): readonly OrderFilter[] {
+  const admin = !!user && hasRole(user, 'ADMIN')
+  return admin ? ORDER_FILTERS : ORDER_FILTERS.filter((filter) => filter !== 'ALL')
+}
+
 /** A filter as a person reads it in the dropdown. */
 export function orderFilterLabel(filter: OrderFilter): string {
   if (filter === 'NOT_COMPLETED') return 'ALL BUT COMPLETED'

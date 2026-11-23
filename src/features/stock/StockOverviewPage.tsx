@@ -10,6 +10,7 @@ import type { SkuOption } from './skuSearch'
 import { ProductStockCard } from './ProductStockCard'
 import { SkuAutocomplete } from './SkuAutocomplete'
 import { StockInventoryCard } from './StockInventoryCard'
+import { ProduceButton } from './ProduceButton'
 
 type Notice = { text: string; failed: boolean } | null
 
@@ -258,6 +259,12 @@ export function StockOverviewPage() {
 
   return (
     <>
+      <div className="card shadow-sm mb-3">
+        <div className="card-body">
+          <h3 className="h5">Production</h3>
+          <ProduceButton />
+        </div>
+      </div>
       <StockInventoryCard />
       <div className="card shadow-sm">
         <div className="card-body d-flex flex-column gap-3">

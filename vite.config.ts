@@ -2,12 +2,13 @@
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import { defineConfig, lazyPlugins } from 'vite-plus'
+import reactSourceString from 'vite-plugin-react-source-string'
 
 // Where the backend runs. Another instance (a second port, say) is `API_TARGET=http://localhost:8099 pnpm dev`.
 const apiTarget = process.env.API_TARGET ?? 'http://localhost:8080'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   staged: {
     '*': 'vp check --fix',
   },
@@ -39,7 +40,13 @@ export default defineConfig({
       },
     ],
   },
-  plugins: lazyPlugins(() => [react(), babel({ presets: [reactCompilerPreset()] })]),
+  plugins: lazyPlugins(() => [
+    ...(command === 'serve'
+      ? [reactSourceString({ excluded: ['Slot'], preferCallSite: true })]
+      : []),
+    react(),
+    babel({ presets: [reactCompilerPreset()] }),
+  ]),
   server: {
     proxy: {
       // The browser talks to this server only, so the session cookie is the page's own and no CORS
@@ -49,4 +56,4 @@ export default defineConfig({
       '/api': { target: apiTarget },
     },
   },
-})
+}))

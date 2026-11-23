@@ -1,7 +1,7 @@
 ﻿import { useQuery } from '@tanstack/react-query'
 import {
   defaultOrderFilter,
-  ORDER_FILTERS,
+  orderFiltersFor,
   orderFilterLabel,
   ordersQueryOptions,
   type OrderFilter,
@@ -105,7 +105,7 @@ export function OrdersPage() {
               setPage(0)
             }}
           >
-            {ORDER_FILTERS.map((s) => (
+            {orderFiltersFor(user ?? undefined).map((s) => (
               <option key={s} value={s}>
                 {orderFilterLabel(s)}
               </option>

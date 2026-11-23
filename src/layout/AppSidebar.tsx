@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import type { UserDto } from '../shared/api/types'
 import { sidebarLinks } from './navigation'
@@ -24,25 +24,38 @@ export function AppSidebar({ user }: { user: UserDto }) {
         </button>
       </div>
       <nav aria-label="Main navigation" className="nav nav-pills flex-column gap-1">
-        {links.map((link) => (
-          <Link
-            key={link.to}
-            to={link.to}
-            activeOptions={{ exact: true }}
-            title={collapsed ? link.label : undefined}
-            aria-label={link.label}
-            className={`nav-link d-flex align-items-center gap-2${
-              pathname === link.to ||
-              (pathname.startsWith(`${link.to}/`) &&
-                !(link.to === '/order-items' && pathname === '/order-items/packable') &&
-                (link.to !== '/orders' || !/^\/orders\/(create|new)(\/|$)/.test(pathname)))
-                ? ' active'
-                : ''
-            }`}
-          >
-            <NavIcon name={link.icon} />
-            {!collapsed && <span>{link.label}</span>}
-          </Link>
+        {links.map((link, index) => (
+          <Fragment key={link.to}>
+            {link.restricted && !links[index - 1]?.restricted && (
+              <div
+                className="sidebar-restricted"
+                role="separator"
+                aria-label="Restricted area"
+                title="Restricted area: administrators only"
+              >
+                {!collapsed && <span>Restricted</span>}
+              </div>
+            )}
+            <Link
+              to={link.to}
+              activeOptions={{ exact: true }}
+              title={collapsed ? link.label : undefined}
+              aria-label={link.label}
+              className={`nav-link d-flex align-items-center gap-2${
+                link.restricted ? ' nav-link-restricted' : ''
+              }${
+                pathname === link.to ||
+                (pathname.startsWith(`${link.to}/`) &&
+                  !(link.to === '/order-items' && pathname === '/order-items/packable') &&
+                  (link.to !== '/orders' || !/^\/orders\/(create|new)(\/|$)/.test(pathname)))
+                  ? ' active'
+                  : ''
+              }`}
+            >
+              <NavIcon name={link.icon} />
+              {!collapsed && <span>{link.label}</span>}
+            </Link>
+          </Fragment>
         ))}
       </nav>
     </aside>

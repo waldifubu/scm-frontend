@@ -14,6 +14,7 @@ const user = (...roles: string[]): UserDto => ({
   firstName: 'Test',
   lastName: 'User',
   username: 'test',
+  userType: 'customer',
   email: 'test@example.invalid',
   color: null,
   isActive: true,
@@ -52,6 +53,7 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Picking orders',
       'Order items',
       'Packable items',
+      'Order History',
       'Packages',
       'Containers',
       'Storehouses',
@@ -80,6 +82,7 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Picking orders',
       'Order items',
       'Packable items',
+      'Order History',
       'Packages',
       'Containers',
       'Shippable Items',
@@ -89,12 +92,15 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Components',
       'Stock',
       'Request Components',
+      'Users',
+      'Supplier Rules',
+      'Distributor Rules',
     ])
   })
 
   it('Request Components is the last entry, for the warehouse and the admin only', () => {
     expect(labels('WAREHOUSE').at(-1)).toBe('Request Components')
-    expect(labels('ADMIN').at(-1)).toBe('Request Components')
+    expect(labels('ADMIN')).toContain('Request Components')
     for (const role of ['MANAGER', 'LOGISTICS', 'SUPPLIER', 'CUSTOMER', 'DISTRIBUTOR']) {
       expect(labels(role)).not.toContain('Request Components')
     }
@@ -128,6 +134,27 @@ describe('sidebarLinks for everybody else is what it was', () => {
   it('a supplier has My Requests and nothing else', () => {
     expect(labels('SUPPLIER')).toEqual(['My Requests'])
     expect(labels('ROLE_SUPPLIER')).toEqual(['My Requests'])
+  })
+
+  it('the restricted entries are for the admin alone, and the last ones', () => {
+    expect(labels('ADMIN').slice(-3)).toEqual(['Users', 'Supplier Rules', 'Distributor Rules'])
+    expect(
+      sidebarLinks(user('ADMIN'))
+        .filter((link) => link.restricted)
+        .map((link) => link.label),
+    ).toEqual(['Users', 'Supplier Rules', 'Distributor Rules'])
+    for (const role of [
+      'MANAGER',
+      'WAREHOUSE',
+      'LOGISTICS',
+      'SUPPLIER',
+      'CUSTOMER',
+      'DISTRIBUTOR',
+    ]) {
+      expect(labels(role)).not.toContain('Users')
+      expect(labels(role)).not.toContain('Supplier Rules')
+      expect(labels(role)).not.toContain('Distributor Rules')
+    }
   })
 
   it('a supplier with another role as well sees the pages of that role too', () => {

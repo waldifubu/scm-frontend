@@ -19,10 +19,19 @@ export function NavIcon({ name }: { name: SidebarLink['icon'] }) {
     shipments: 'M3 12h13m-5-5 5 5-5 5M21 5v14',
     items: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
     'packable-items': 'M4 5h16M4 12h16M4 19h16M7 5v.01M7 12v.01M7 19v.01',
+    // A clock with a hand turned back: what happened to an order, and when.
+    'order-history': 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2',
     storehouses: 'M3 10 12 4l9 6M5 9v11h14V9M9 20v-7h6v7',
     // A box with an arrow into it: goods asked for from a supplier.
     // An inbox tray: what suppliers were asked for, seen from the supplier.
     'my-requests': 'M3 13h5l1 3h6l1-3h5M3 13l3-8h12l3 8v6H3z',
+    // Two heads and shoulders: the people of the system.
+    users:
+      'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+    // A branching arrow: where a request is routed to.
+    'supplier-rules': 'M3 12h6m0 0 5-6h7m-12 6 5 6h7M18 3l3 3-3 3m0 6 3 3-3 3',
+    // A signpost: which carrier a shipment is sent with.
+    'distributor-rules': 'M12 3v18M7 5h10l3 3-3 3H7zM17 14H7l-3 3 3 3h10z',
     requests: 'M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8M1 4h22v4H1zM12 11v6M9 14l3 3 3-3',
     picking: 'M9 6h11M9 12h11M9 18h11M3 6l1 1 2-2m-3 7 1 1 2-2m-3 7 1 1 2-2',
     'new-orders': 'M7 3h8l4 4v14H7zM15 3v5h5m-9 5h5m-5 4h5',

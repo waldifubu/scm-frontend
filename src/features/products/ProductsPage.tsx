@@ -6,6 +6,8 @@ import { productsQueryOptions, type ProductFilter } from './products'
 import { hasRole } from '../../shared/api/types'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
+import { NewProductForm } from './NewProductForm'
+import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
 import { cell } from '../../shared/lib/format'
 
 const columns = [
@@ -92,6 +94,9 @@ function ProductsTable({
 
 /** All products, as the backend lists them; the details of the chosen one render below. */
 export function ProductsPage() {
+  const { data: user } = useQuery(meQueryOptions)
+  // `POST /products` is for admins and managers.
+  const canCreate = user ? hasRole(user, 'ADMIN') || hasRole(user, 'MANAGER') : false
   const [page, setPage] = useState('')
   const [size, setSize] = useState('')
   const filter: ProductFilter = {
@@ -130,6 +135,11 @@ export function ProductsPage() {
         <ProductsTable filter={filter} onPage={(next) => setPage(String(next))} />
       </div>
       <Outlet />
+      {canCreate && (
+        <NewRuleToggle label="New Product" formId="new-product-form" icon={<NewRuleIcon />}>
+          {(close) => <NewProductForm onDone={close} />}
+        </NewRuleToggle>
+      )}
     </>
   )
 }

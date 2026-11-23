@@ -12,13 +12,19 @@ export type SidebarLink = {
     | '/shipments'
     | '/order-items'
     | '/order-items/packable'
+    | '/order-history'
     | '/storehouses'
     | '/requests'
     | '/my-requests'
+    | '/users'
+    | '/supplier-rules'
+    | '/distributor-rules'
     | '/picking-orders'
     | '/orders/new'
     | '/orders/create'
   label: string
+  /** Part of the restricted area (admins only): the navigation sets these apart under a red line. */
+  restricted?: boolean
   icon:
     | 'orders'
     | 'products'
@@ -30,9 +36,13 @@ export type SidebarLink = {
     | 'shipments'
     | 'items'
     | 'packable-items'
+    | 'order-history'
     | 'storehouses'
     | 'requests'
     | 'my-requests'
+    | 'users'
+    | 'supplier-rules'
+    | 'distributor-rules'
     | 'picking'
     | 'new-orders'
     | 'create-order'
@@ -84,6 +94,7 @@ function holdsOnly(user: UserDto, role: (typeof ALL_ROLES)[number]): boolean {
 
 /** The entries of the navigation, in order, that this user sees. */
 export function sidebarLinks(user: UserDto): SidebarLink[] {
+  const isAdmin = hasRole(user, 'ADMIN')
   const isWarehouse = hasRole(user, 'WAREHOUSE') || hasRole(user, 'ADMIN')
   // Shipments: the planning side sees them all, a carrier sees their own. The backend answers 403 to anybody else.
   // Shippable Items: the containers logistics may still put into a shipment (`GET /shipments/packages`).
@@ -103,6 +114,15 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
     { to: '/picking-orders', label: 'Picking orders', icon: 'picking', visible: isWarehouse },
     { to: '/order-items', label: 'Order items', icon: 'items', visible: true },
     { to: '/order-items/packable', label: 'Packable items', icon: 'packable-items', visible: true },
+    // Every status change of every order (`GET /orders/history`): the roles that may read any order.
+    {
+      to: '/order-history',
+      label: 'Order History',
+      icon: 'order-history',
+      visible: ['ADMIN', 'MANAGER', 'WAREHOUSE', 'LOGISTICS'].some((role) =>
+        hasRole(user, role as 'ADMIN'),
+      ),
+    },
     { to: '/packages', label: 'Packages', icon: 'packages', visible: true },
     { to: '/shipment-packages', label: 'Containers', icon: 'shipment-packages', visible: true },
     {
@@ -124,6 +144,23 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
       label: 'My Requests',
       icon: 'my-requests',
       visible: hasRole(user, 'SUPPLIER'),
+    },
+    // All users (`GET /users`): the backend answers ADMIN only.
+    { to: '/users', label: 'Users', icon: 'users', restricted: true, visible: isAdmin },
+    // The two rule tables (`GET /supplier-rules`, `GET /distributor-rules`): ADMIN only as well.
+    {
+      to: '/supplier-rules',
+      label: 'Supplier Rules',
+      icon: 'supplier-rules',
+      restricted: true,
+      visible: isAdmin,
+    },
+    {
+      to: '/distributor-rules',
+      label: 'Distributor Rules',
+      icon: 'distributor-rules',
+      restricted: true,
+      visible: isAdmin,
     },
   ]
 
