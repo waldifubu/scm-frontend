@@ -16,7 +16,7 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.108.3",
+    "@tanstack/react-query": "^5.108.4",
     "@tanstack/react-router": "^1.170.46",
     "bootstrap": "^5.3.9",
     "mermaid": "^12.3.0",
@@ -36,7 +36,8 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "~7.0.2",
     "vite": "catalog:",
-    "vite-plugin-react-source-string": "^0.3.1",
+    "vite-plugin-react-source-string": "^0.4.0",
     "vite-plus": "catalog:"
-  }
+  },
+  "packageManager": "pnpm@12.23.0"
 }
