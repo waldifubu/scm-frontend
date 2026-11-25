@@ -1,40 +1,8 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { ORDER_STATUSES } from './orders'
 import type { OrderWorkflowDiagram } from './workflow'
-import { describeNode, flowFrom, workflowDiagram } from './workflowDiagram'
+import { describeNode, flowFrom, statusOfNodeId, workflowDiagram } from './workflowDiagram'
 
-describe('workflowDiagram', () => {
-  it('has a node for every status the order list knows', () => {
-    const diagram = workflowDiagram(null)
-    for (const status of ORDER_STATUSES) {
-      expect(diagram, status).toMatch(new RegExp(`\\b${status}\\b`))
-    }
-  })
-
-  it('marks the status the order stands in', () => {
-    expect(workflowDiagram('IN_TRANSIT')).toContain('class IN_TRANSIT current')
-  })
-
-  it('marks nothing for a status it does not know, or for no status', () => {
-    expect(workflowDiagram(undefined)).not.toContain('current\n')
-    expect(workflowDiagram(null)).not.toMatch(/\n {2}class \w+ current/)
-    expect(workflowDiagram(42)).not.toMatch(/\n {2}class \w+ current/)
-  })
-
-  it('does not let a status carry Mermaid syntax into the diagram', () => {
-    const diagram = workflowDiagram('CREATED\n  click CREATED call alert()')
-    expect(diagram).not.toContain('alert')
-  })
-})
-
-describe('workflowDiagram direction', () => {
-  it('runs left to right unless asked otherwise', () => {
-    expect(workflowDiagram(null)).toMatch(/^flowchart LR\n/)
-    expect(workflowDiagram(null, 'TB')).toMatch(/^flowchart TB\n/)
-  })
-})
-
-// What `GET /orders/workflow/diagram` answers today (OrderWorkflowDiagramServiceImplTest holds the same arrows).
+// An answer shaped like the one of `GET /orders/workflow/diagram`.
 const forward = (from: string, to: string) => ({ from, to, kind: 'FORWARD' as const })
 const BACKEND = {
   nodes: [
@@ -92,8 +60,12 @@ function arrows(text: string): string[] {
 }
 
 describe('flowFrom', () => {
-  it('draws the same arrows as the built-in flow, so a drift between backend and frontend turns this red', () => {
-    expect(arrows(flowFrom(BACKEND))).toEqual(arrows(workflowDiagram(null)))
+  it('draws every arrow the answer names, and no other', () => {
+    expect(arrows(flowFrom(BACKEND))).toEqual(
+      BACKEND.edges
+        .map((edge) => `${edge.from}>${edge.to}${edge.label ? ` ${edge.label}` : ''}`)
+        .sort(),
+    )
   })
 
   it('puts the ends beside the flow and gives them no arrows', () => {
@@ -124,12 +96,36 @@ describe('flowFrom', () => {
     expect(flow).not.toContain('click')
     expect(flow).not.toContain('X["B')
   })
+})
 
-  it('is what workflowDiagram draws once the diagram is there, with the status marked', () => {
-    const text = workflowDiagram('IN_TRANSIT', 'TB', BACKEND)
-    expect(text).toMatch(/^flowchart TB\n/)
-    expect(text).toContain('class IN_TRANSIT current')
-    expect(text).toContain('IN_FULFILLMENT -. all released .-> REVIEW')
+describe('workflowDiagram', () => {
+  it('draws the answer left to right unless asked otherwise', () => {
+    expect(workflowDiagram(BACKEND, null)).toMatch(/^flowchart LR\n/)
+    expect(workflowDiagram(BACKEND, null, 'TB')).toMatch(/^flowchart TB\n/)
+    expect(workflowDiagram(BACKEND, null)).toContain('IN_FULFILLMENT -. all released .-> REVIEW')
+  })
+
+  it('marks the status the order stands in', () => {
+    expect(workflowDiagram(BACKEND, 'IN_TRANSIT')).toContain('class IN_TRANSIT current')
+  })
+
+  it('marks nothing for no status, or for something that is none', () => {
+    for (const status of [undefined, null, 42]) {
+      expect(workflowDiagram(BACKEND, status)).not.toMatch(/\n {2}class \w+ current/)
+    }
+  })
+
+  it('does not let a status carry Mermaid syntax into the diagram', () => {
+    expect(workflowDiagram(BACKEND, 'CREATED\n  click CREATED call alert()')).not.toContain('alert')
+  })
+})
+
+describe('statusOfNodeId', () => {
+  it('reads the status off a Mermaid node id', () => {
+    expect(statusOfNodeId('flowchart-IN_TRANSIT-7')).toBe('IN_TRANSIT')
+    expect(statusOfNodeId('mermaid-1_flowchart-CREATED-0')).toBe('CREATED')
+    expect(statusOfNodeId('ends')).toBeUndefined()
+    expect(statusOfNodeId(null)).toBeUndefined()
   })
 })
 

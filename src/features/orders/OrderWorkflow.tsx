@@ -2,9 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import type { MouseEvent } from 'react'
 import RenderMermaid from 'react-x-mermaid'
-import { describeStatus, statusOfNodeId } from './statusDescriptions'
-import { describeNode, workflowDiagram } from './workflowDiagram'
+import { describeNode, statusOfNodeId, workflowDiagram } from './workflowDiagram'
 import { orderWorkflowDiagramQueryOptions } from './workflow'
+import { ApiError } from '../../shared/api/client'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 // Text a size that reads next to the page's own, and a diagram that keeps that size (`useMaxWidth: false`)
 // instead of shrinking to the card: it scrolls sideways where it is wider.
@@ -31,16 +32,17 @@ const TALL_CONFIG = {
  * `tall` draws the flow top to bottom and fits it to the height of the window, for a page of its own (the start
  * page); the default runs left to right and scrolls sideways, centred on the current state.
  *
+ * The flow and the explanations come from the backend. Where it refuses them (403) there is no
+ * card at all; any other failure is said in it.
+ *
  * It pulls in Mermaid, which is large, so pages load this file only when it is shown.
  */
 export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall?: boolean }) {
   const [open, setOpen] = useState(true)
   const [hovered, setHovered] = useState<string>()
   const scroller = useRef<HTMLDivElement>(null)
-  // The backend draws the flow and says what each state means; until it answers (or when it refuses - SUPPLIER may
-  // not ask) the built-in diagram and descriptions stand in.
-  const { data: diagram } = useQuery(orderWorkflowDiagramQueryOptions())
-  const describe = (state: unknown) => describeNode(diagram, state) ?? describeStatus(state)
+  const { data: diagram, error } = useQuery(orderWorkflowDiagramQueryOptions())
+  const describe = (state: unknown) => describeNode(diagram, state)
 
   // The wide diagram is wider than most cards, and the part that matters is where the order is: scroll it to the
   // middle of the view. Mermaid draws asynchronously, so wait for the highlighted node to appear.
@@ -61,7 +63,7 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
     })
     watch.observe(box, { childList: true, subtree: true })
     return () => watch.disconnect()
-  }, [status, tall, open])
+  }, [status, tall, open, diagram])
 
   // One listener for the whole drawing: Mermaid owns the nodes, so they are found from the event.
   const point = (event: MouseEvent) => {
@@ -73,6 +75,8 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
 
   const shown = hovered ?? (typeof status === 'string' ? status : undefined)
   const text = describe(shown)
+
+  if (error instanceof ApiError && error.status === 403) return null
 
   return (
     <div className="card shadow-sm mt-4">
@@ -88,7 +92,11 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
             {open ? 'Hide' : 'Show'}
           </button>
         </div>
-        {open && (
+        {open && error && <p className="text-danger mt-3 mb-0">{error.message}</p>}
+        {open && !error && !diagram && (
+          <LoadingBar label="Loading the workflow…" className="mt-3" />
+        )}
+        {open && diagram && (
           <div className="d-flex flex-wrap gap-3 mt-3">
             <div
               ref={scroller}
@@ -97,7 +105,7 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
               onMouseLeave={tall ? () => setHovered(undefined) : undefined}
             >
               <RenderMermaid
-                mermaidCode={workflowDiagram(status, tall ? 'TB' : 'LR', diagram)}
+                mermaidCode={workflowDiagram(diagram, status, tall ? 'TB' : 'LR')}
                 mermaidConfig={tall ? TALL_CONFIG : WIDE_CONFIG}
                 disableCopy
                 disableDownload

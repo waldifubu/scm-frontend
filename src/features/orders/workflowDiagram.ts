@@ -1,37 +1,10 @@
 import type { OrderWorkflowDiagram } from './workflow'
 
 /**
- * The Mermaid source of the order workflow, with the status an order stands in marked.
- *
- * It is drawn from what the backend sends (`GET /orders/workflow/diagram`, see `flowFrom`): the nodes, the arrows
- * worth drawing - a dotted one for a step that takes the order back - and the ends, which stand beside the flow
- * instead of hanging off one arbitrary node. This copy is only what is drawn until that answer is there, or when
- * the caller may not ask for it (SUPPLIER); a test holds it against the backend's table.
+ * The Mermaid source of the order workflow, drawn from what the backend sends (`GET /orders/workflow/diagram`): the
+ * nodes, the arrows worth drawing - a dotted one for a step that takes the order back - and the ends, which stand
+ * beside the flow instead of hanging off one arbitrary node. Nothing of the flow itself is kept here.
  */
-const FLOW = `
-  CREATED["CREATED"] --> ACKNOWLEDGED["ACKNOWLEDGED"]
-  CREATED --> WAIT_SUPPLY["WAIT<br/>SUPPLY"]
-  CREATED --> REVIEW["REVIEW"]
-  REVIEW --> ACKNOWLEDGED
-  REVIEW --> WAIT_SUPPLY
-  ACKNOWLEDGED --> IN_FULFILLMENT["IN<br/>FULFILLMENT"]
-  WAIT_SUPPLY --> IN_FULFILLMENT
-  IN_FULFILLMENT -. all released .-> REVIEW
-  IN_FULFILLMENT --> READY_FOR_DISPATCH["READY FOR<br/>DISPATCH"]
-  READY_FOR_DISPATCH --> IN_TRANSIT["IN TRANSIT"]
-  IN_TRANSIT --> PARTIALLY_DELIVERED["PARTIALLY<br/>DELIVERED"]
-  IN_TRANSIT --> DELIVERED["DELIVERED"]
-  PARTIALLY_DELIVERED --> DELIVERED
-  DELIVERED --> COMPLETED["COMPLETED"]
-  READY_FOR_DISPATCH -. shipment cancelled .-> IN_FULFILLMENT
-  subgraph ends [" "]
-    direction LR
-    REJECTED["REJECTED"]
-    CANCELLED["CANCELLED"]
-  end
-  classDef current fill:#0d6efd,stroke:#0a58ca,color:#fff,stroke-width:3px
-  classDef terminal fill:#f8f9fa,stroke:#adb5bd,color:#495057
-  class REJECTED,CANCELLED terminal`
 
 const NODE_ID = /^[A-Z_]+$/
 
@@ -89,20 +62,21 @@ export function describeNode(
 /** Which way the flow runs: left to right (wide), or top to bottom (tall, to fit a screen without scrolling). */
 export type FlowDirection = 'LR' | 'TB'
 
-/**
- * The diagram, the node of `status` highlighted; a status the diagram does not know highlights nothing. Drawn from
- * the backend's `diagram` once it is there, from the built-in flow until then.
- */
+/** The diagram with the node of `status` highlighted; a status that is not a plain name highlights nothing. */
 export function workflowDiagram(
+  diagram: OrderWorkflowDiagram,
   status: unknown,
   direction: FlowDirection = 'LR',
-  diagram?: OrderWorkflowDiagram,
 ): string {
-  const flow = diagram ? flowFrom(diagram) : FLOW
-  const head = `flowchart ${direction}`
-  const current = typeof status === 'string' && /^[A-Z_]+$/.test(status) ? status : null
+  const text = `flowchart ${direction}${flowFrom(diagram)}`
+  const current = typeof status === 'string' && NODE_ID.test(status) ? status : null
   return current
-    ? `${head}${flow}
+    ? `${text}
   class ${current} current`
-    : `${head}${flow}`
+    : text
+}
+
+/** The status a Mermaid node belongs to, read from the id Mermaid gives it (`flowchart-IN_TRANSIT-7`). */
+export function statusOfNodeId(id: string | null | undefined): string | undefined {
+  return id?.match(/flowchart-([A-Z_]+)-\d+/)?.[1]
 }
