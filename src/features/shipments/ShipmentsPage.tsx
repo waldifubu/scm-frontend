@@ -20,6 +20,7 @@ import { DeliveryDetails } from './DeliveryDetails'
 import { Pager } from '../../shared/ui/Pager'
 import { SortableHeader } from '../../shared/ui/SortableHeader'
 import { PageTitle } from '../../layout/PageTitle'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 function ShipmentLink({ id, children }: { id: number; children: React.ReactNode }) {
   return (
@@ -159,7 +160,7 @@ function ShipmentsTable({
 }) {
   const { data, isPending, error } = useQuery(shipmentsQueryOptions(filter))
 
-  if (isPending) return <p className="p-3 mb-0">Loading shipments…</p>
+  if (isPending) return <LoadingBar label="Loading shipments…" />
   if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
   if (data.content.length === 0)
     return <p className="p-3 mb-0 text-body-secondary">No shipments.</p>
@@ -264,7 +265,7 @@ function MyShipmentsTable({
 }) {
   const { data, isPending, error } = useQuery(myShipmentsQueryOptions(filter))
 
-  if (isPending) return <p className="p-3 mb-0">Loading your shipments…</p>
+  if (isPending) return <LoadingBar label="Loading your shipments…" />
   if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
   if (data.content.length === 0)
     return <p className="p-3 mb-0 text-body-secondary">No shipments have been handed to you.</p>

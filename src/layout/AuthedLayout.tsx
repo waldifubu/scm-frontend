@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Navigate, Outlet, useRouter } from '@tanstack/react-router'
 import { logout, meQueryKey, meQueryOptions } from '../features/auth/auth'
@@ -41,7 +42,15 @@ export function AuthedLayout() {
     <>
       <nav
         className={`navbar border-bottom border-body${bar ? '' : ' bg-dark'}`}
-        style={bar ? { backgroundColor: bar.background } : undefined}
+        style={
+          bar
+            ? ({
+                backgroundColor: bar.background,
+                // Bootstrap dims the text of a dark bar to 55 % white, too faint on a colour.
+                ...(theme === 'dark' && { '--bs-navbar-color': '#fff' }),
+              } as CSSProperties)
+            : undefined
+        }
         data-bs-theme={theme}
       >
         <div className="container">

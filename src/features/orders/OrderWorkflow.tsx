@@ -37,8 +37,8 @@ export function OrderWorkflow({ status, tall = false }: { status?: unknown; tall
   const [open, setOpen] = useState(true)
   const [hovered, setHovered] = useState<string>()
   const scroller = useRef<HTMLDivElement>(null)
-  // The backend draws the flow and says what each state means; until it answers (or when it refuses - SUPPLIER and
-  // DISTRIBUTOR may not ask) the built-in diagram and descriptions stand in.
+  // The backend draws the flow and says what each state means; until it answers (or when it refuses - SUPPLIER may
+  // not ask) the built-in diagram and descriptions stand in.
   const { data: diagram } = useQuery(orderWorkflowDiagramQueryOptions())
   const describe = (state: unknown) => describeNode(diagram, state) ?? describeStatus(state)
 

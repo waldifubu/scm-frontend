@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId } from 'react'
 import { distributorQueryOptions, type DistributorQuery } from './distributors'
-import { assignDistributor, type ShipmentDetail } from './shipments'
+import { assignDistributor, holdsShipment, type ShipmentDetail } from './shipments'
 import { displayName } from '../../shared/api/types'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 interface Props {
   shipment: ShipmentDetail
@@ -86,7 +87,7 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
                   distributors.
                 </p>
               )}
-              {isPending && <p className="mb-0">Loading distributors…</p>}
+              {isPending && <LoadingBar label="Loading distributors…" className="" />}
               {error && <p className="mb-0 text-danger">{error.message}</p>}
               {data && distributors.length === 0 && (
                 <p className="mb-0 text-body-secondary">
@@ -129,7 +130,9 @@ export function AssignDistributorModal({ shipment, query, onClose, onAssigned }:
                               <button
                                 type="button"
                                 className="btn btn-sm btn-orange"
-                                disabled={current || assign.isPending}
+                                disabled={
+                                  holdsShipment(distributor.id, shipment) || assign.isPending
+                                }
                                 onClick={() => assign.mutate(distributor.id)}
                               >
                                 {assign.isPending && assign.variables === distributor.id

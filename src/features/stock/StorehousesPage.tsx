@@ -9,6 +9,7 @@ import { hasRole } from '../../shared/api/types'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 function StorehousesTable({
   page,
@@ -23,7 +24,7 @@ function StorehousesTable({
 }) {
   const { data, isPending, error } = useQuery(storehousesQueryOptions(page))
 
-  if (isPending) return <p className="p-3 mb-0">Loading storehouses…</p>
+  if (isPending) return <LoadingBar label="Loading storehouses…" />
   if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
   const items = data.content
   if (items.length === 0) return <p className="p-3 mb-0 text-body-secondary">No storehouses.</p>

@@ -13,6 +13,7 @@ import { SortableHeader } from '../../shared/ui/SortableHeader'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/stock/storehouse/$storehouseId')
 
@@ -155,7 +156,7 @@ function StockView({ storehouseId }: { storehouseId: string }) {
           <PageTitle icon="storehouses">Stock of {title}</PageTitle>
         </div>
         {isPending ? (
-          <p className="p-3 mb-0">Loading stock…</p>
+          <LoadingBar label="Loading stock…" />
         ) : error ? (
           <p className="p-3 mb-0 text-danger">{error.message}</p>
         ) : items.length === 0 ? (

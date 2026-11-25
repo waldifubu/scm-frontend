@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet } from '@tanstack/react-router'
 import { useState } from 'react'
 import { meQueryOptions } from '../auth/auth'
@@ -12,13 +12,13 @@ import { hasRole } from '../../shared/api/types'
 import { DEFAULT_QTY, requestComponentsBody, uncoveredSkus } from './componentRequest'
 import { Chevron } from '../../shared/ui/Chevron'
 import { NewComponentForm } from './NewComponentForm'
-import { ArticleLookup } from './ArticleLookup'
+import { ExternalIdLookup } from './ExternalIdLookup'
 import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
 import { PageTitle } from '../../layout/PageTitle'
-import { Pager } from '../../shared/ui/Pager'
+import { ServerTable } from '../../shared/ui/ServerTable'
+import { listSort, useServerTableState } from '../../shared/lib/serverTable'
+import { COMPONENT_SORT_KEYS, componentColumns } from './componentColumns'
 import { cell } from '../../shared/lib/format'
-
-const HIDDEN_COLUMNS = ['id', 'componentId', 'sku']
 
 /** A product reads as its name with the article number in brackets. */
 function productLabel(product: unknown): string {
@@ -30,85 +30,63 @@ function productLabel(product: unknown): string {
 }
 
 function ComponentsTable({
-  page,
-  onPage,
   selected,
   onToggle,
   selectable,
 }: {
-  page: number
-  onPage: (page: number) => void
   selected: string[]
   onToggle: (sku: string) => void
   selectable: boolean
 }) {
-  const { data, isPending, error } = useQuery(componentsQueryOptions(page))
-
-  if (isPending) return <p className="p-3 mb-0">Loading components…</p>
-  if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
-  const components = data.content
-  if (components.length === 0) return <p className="p-3 mb-0 text-body-secondary">No components.</p>
-
-  const columns = [...new Set(components.flatMap((component) => Object.keys(component)))].filter(
-    (column) => !HIDDEN_COLUMNS.includes(column),
-  )
+  const { pagination, sorting, setPagination, setSorting } = useServerTableState()
+  const { data, isPending, isFetching, error } = useQuery({
+    ...componentsQueryOptions(pagination.pageIndex, {
+      size: pagination.pageSize,
+      ...listSort(sorting, COMPONENT_SORT_KEYS),
+    }),
+    // The old page stays while the next one loads, so a click on a head does not empty the table.
+    placeholderData: keepPreviousData,
+  })
 
   return (
-    <>
-      <div className="table-responsive">
-        <table className="table table-striped table-sm mb-0">
-          <thead>
-            <tr>
-              {selectable && <th />}
-              {columns.map((column) => (
-                <th key={column}>{column}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {components.map((component, index) => (
-              <tr key={componentSku(component) || index}>
-                {selectable && (
-                  <td>
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      aria-label={`Select component ${cell(component.name) || componentSku(component)}`}
-                      checked={selected.includes(componentSku(component))}
-                      onChange={() => onToggle(componentSku(component))}
-                    />
-                  </td>
-                )}
-                {columns.map((column) => (
-                  <td key={column}>
-                    <Link
-                      to="/components/$sku"
-                      params={{ sku: componentSku(component) }}
-                      className="text-decoration-none text-reset"
-                    >
-                      {column === 'product'
-                        ? productLabel(component[column])
-                        : cell(component[column])}
-                    </Link>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <dl className="row justify-content-end small text-body-secondary px-2 mt-2 mb-2">
-        <dd className="col-auto mb-0 me-auto">
-          <Pager page={data.page} size={data.size} total={data.total} onPage={onPage} />
-        </dd>
-        <dt className="col-auto">total</dt>
-        <dd className="col-auto">{data.total}</dd>
-        <dt className="col-auto">page</dt>
-        <dd className="col-auto">{data.page}</dd>
-        <dt className="col-auto">size</dt>
-        <dd className="col-auto">{data.size}</dd>
-      </dl>
-    </>
+    <ServerTable
+      columns={componentColumns}
+      data={data}
+      isPending={isPending}
+      isFetching={isFetching}
+      error={error}
+      loading="Loading components…"
+      empty="No components."
+      rowId={(component, index) => componentSku(component) || String(index)}
+      leading={
+        selectable
+          ? {
+              render: (component) => (
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  aria-label={`Select component ${cell(component.name) || componentSku(component)}`}
+                  checked={selected.includes(componentSku(component))}
+                  onChange={() => onToggle(componentSku(component))}
+                />
+              ),
+            }
+          : undefined
+      }
+      renderCell={(column, component) => (
+        <Link
+          to="/components/$sku"
+          params={{ sku: componentSku(component) }}
+          className="text-decoration-none text-reset"
+        >
+          {column === 'product' ? productLabel(component[column]) : cell(component[column])}
+        </Link>
+      )}
+      pagination={pagination}
+      sorting={sorting}
+      onPagination={setPagination}
+      onSorting={setSorting}
+    />
   )
 }
 
@@ -289,7 +267,6 @@ function RequestComponentsForm({
 
 /** All components, as the backend lists them; the details of the chosen one render below. */
 export function ComponentsPage() {
-  const [page, setPage] = useState(0)
   // The components ticked for a request, by SKU: they stay chosen over pages.
   const [selected, setSelected] = useState<string[]>([])
   const [showRequest, setShowRequest] = useState(false)
@@ -312,16 +289,10 @@ export function ComponentsPage() {
             <PageTitle icon="components" className="me-auto">
               Components
             </PageTitle>
-            <ArticleLookup />
+            <ExternalIdLookup />
           </div>
         </div>
-        <ComponentsTable
-          page={page}
-          onPage={setPage}
-          selected={selected}
-          onToggle={toggle}
-          selectable={canRequest}
-        />
+        <ComponentsTable selected={selected} onToggle={toggle} selectable={canRequest} />
       </div>
       <Outlet />
       {canCreate && (

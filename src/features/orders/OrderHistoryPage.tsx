@@ -19,6 +19,7 @@ import { Pager } from '../../shared/ui/Pager'
 import { SortableHeader } from '../../shared/ui/SortableHeader'
 import { formatMoment } from '../../shared/lib/format'
 import { nextSort, type TableSort } from '../../shared/lib/tableSort'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /** `from → to`; the creation of an order comes from nowhere, which the table says as a dash. */
 function Transition({ from, to }: { from: string | null; to: string }) {
@@ -43,7 +44,7 @@ function Actor({ entry }: { entry: HistoryEntry }) {
 /** The whole timeline of the order of the selected step, the selected step marked. */
 function Timeline({ orderNo, selectedId }: { orderNo: number; selectedId: number }) {
   const { data, isPending, error } = useQuery(orderTimelineQueryOptions(orderNo))
-  if (isPending) return <p className="mb-0">Loading the timeline…</p>
+  if (isPending) return <LoadingBar label="Loading the timeline…" className="" />
   if (error) return <p className="mb-0 text-danger">{error.message}</p>
   return (
     <ol className="list-group list-group-flush">
@@ -200,7 +201,7 @@ export function OrderHistoryPage() {
             </button>
           )}
         </div>
-        {isPending && <p className="p-3 mb-0">Loading the history…</p>}
+        {isPending && <LoadingBar label="Loading the history…" />}
         {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
         {data && data.content.length === 0 && (
           <p className="p-3 mb-0 text-body-secondary">No status changes.</p>

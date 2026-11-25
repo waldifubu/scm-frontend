@@ -8,6 +8,7 @@ import { requestStatusClass } from './requestStatus'
 import { actionsFor, type RowAction } from './supplierActions'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { PageTitle } from '../../layout/PageTitle'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * The component requests placed with the logged-in supplier (`GET /supplier/my-requests`), as the supplier sees
@@ -48,7 +49,7 @@ export function MyRequestsPage() {
       <div className="card-body">
         <PageTitle icon="my-requests">My Requests</PageTitle>
       </div>
-      {isPending && <p className="p-3 mb-0">Loading requests…</p>}
+      {isPending && <LoadingBar label="Loading requests…" />}
       {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
       {data && data.length === 0 && <p className="p-3 mb-0 text-body-secondary">No requests.</p>}
       {data && data.length > 0 && (

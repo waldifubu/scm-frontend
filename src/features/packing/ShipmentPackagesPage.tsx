@@ -16,9 +16,13 @@ import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
 import { RecycleIcon } from './RecycleIcon'
+import { CompleteRowButton } from './CompleteRowButton'
+import { mayPack } from './orderItems'
+import { meQueryOptions } from '../auth/auth'
 import { NewContainerForm } from './NewContainerForm'
 import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
 import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const DATE_COLUMNS = new Set(['updatedAt', 'createdAt', 'dispatchedAt', 'packedAt', 'dueDate'])
 const HIDDEN_COLUMNS = new Set([
@@ -81,9 +85,15 @@ export function ShipmentPackagesPage() {
   const items = data?.content ?? []
   const queryClient = useQueryClient()
   // A row without an items list is not known to be empty, so it is never offered for recycling.
+  const { data: user } = useQuery(meQueryOptions)
+  // Everything that changes a container is packing work (ADMIN, WAREHOUSE); anybody else only reads.
+  const packs = mayPack(user)
   const recyclable = (item: Record<string, unknown>) =>
-    Array.isArray(item.items) && canRecycle(item.status, item.items.length)
-  const anyRecyclable = items.some(recyclable)
+    packs && Array.isArray(item.items) && canRecycle(item.status, item.items.length)
+  // Only an OPEN container can be completed.
+  const completable = (item: Record<string, unknown>) => packs && item.status === 'OPEN'
+  const [notice, setNotice] = useState('')
+  const anyAction = items.some((item) => completable(item) || recyclable(item))
   const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
     (c) => !HIDDEN_COLUMNS.has(c),
   )
@@ -102,6 +112,7 @@ export function ShipmentPackagesPage() {
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value as ShipmentPackageStatus)
+                setNotice('')
                 // Page 3 of one status says nothing about another.
                 setPage('')
               }}
@@ -160,7 +171,7 @@ export function ShipmentPackagesPage() {
           </div>
         </div>
 
-        {isPending && <p className="p-3 mb-0">Loading containers…</p>}
+        {isPending && <LoadingBar label="Loading containers…" />}
         {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
         {data && items.length === 0 && (
           <p className="p-3 mb-0 text-body-secondary">No containers.</p>
@@ -174,7 +185,7 @@ export function ShipmentPackagesPage() {
                     {columns.map((column) => (
                       <th key={column}>{column}</th>
                     ))}
-                    {anyRecyclable && <th />}
+                    {anyAction && <th />}
                   </tr>
                 </thead>
                 <tbody>
@@ -191,24 +202,36 @@ export function ShipmentPackagesPage() {
                           </Link>
                         </td>
                       ))}
-                      {anyRecyclable && (
-                        <td className="text-end">
-                          {recyclable(item) && (
-                            <DeleteWithConfirm
-                              label="Recycle"
-                              icon={<RecycleIcon />}
-                              title="Recycle container"
-                              onDelete={() => recycleShipmentPackage(cell(item.id))}
-                              onDeleted={() => {
-                                void queryClient.invalidateQueries({
-                                  queryKey: ['shipment-packages'],
-                                })
-                              }}
-                            >
-                              Recycle empty container {cell(item.packageNumber) || cell(item.id)}?
-                              It is deleted for good.
-                            </DeleteWithConfirm>
-                          )}
+                      {anyAction && (
+                        <td className="text-end text-nowrap">
+                          <div className="d-inline-flex gap-2">
+                            {recyclable(item) && (
+                              <DeleteWithConfirm
+                                label="Recycle"
+                                icon={<RecycleIcon />}
+                                title="Recycle container"
+                                onDelete={() => recycleShipmentPackage(cell(item.id))}
+                                onDeleted={() => {
+                                  void queryClient.invalidateQueries({
+                                    queryKey: ['shipment-packages'],
+                                  })
+                                }}
+                              >
+                                Recycle empty container {cell(item.packageNumber) || cell(item.id)}?
+                                It is deleted for good.
+                              </DeleteWithConfirm>
+                            )}
+                            {completable(item) && (
+                              <CompleteRowButton
+                                id={cell(item.id)}
+                                name={cell(item.packageNumber) || cell(item.id)}
+                                itemCount={
+                                  Array.isArray(item.items) ? item.items.length : undefined
+                                }
+                                onCompleted={setNotice}
+                              />
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -235,9 +258,16 @@ export function ShipmentPackagesPage() {
           </>
         )}
       </div>
-      <NewRuleToggle label="New Container" formId="new-container-form" icon={<NewRuleIcon />}>
-        {(close) => <NewContainerForm onDone={close} />}
-      </NewRuleToggle>
+      {notice && (
+        <p className="mt-2 mb-0 text-success" role="status">
+          {notice}
+        </p>
+      )}
+      {packs && (
+        <NewRuleToggle label="New Container" formId="new-container-form" icon={<NewRuleIcon />}>
+          {(close) => <NewContainerForm onDone={close} />}
+        </NewRuleToggle>
+      )}
       <Outlet />
     </>
   )

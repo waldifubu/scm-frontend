@@ -302,10 +302,14 @@ export function trackingNumberError(value: string): string | null {
 
 /**
  * The statuses a carrier sets or changes the tracking number in: from the handover until the shipment is
- * reported on its way. From IN_TRANSIT on the number is fixed - the field is not offered any more, and the
- * backend answers 409 - and a declined, delivered or cancelled shipment has no business with one either.
+ * delivered. A declined, delivered or cancelled shipment has no business with one - the field is not offered,
+ * and the backend answers 409.
  */
-export const TRACKING_NUMBER_STATES: readonly ShipmentState[] = ['DISPATCH_REQUESTED', 'ACCEPTED']
+export const TRACKING_NUMBER_STATES: readonly ShipmentState[] = [
+  'DISPATCH_REQUESTED',
+  'ACCEPTED',
+  'IN_TRANSIT',
+]
 
 export function canSetTrackingNumber(status: string): boolean {
   return (TRACKING_NUMBER_STATES as readonly string[]).includes(status)
@@ -355,6 +359,9 @@ export function declineShipment(shipmentId: number | string, reason: string): Pr
   })
 }
 
+/** The longest reason the shipment's comment column holds. */
+export const CANCEL_REASON_MAX_LENGTH = 255
+
 /**
  * `POST /shipments/{id}/cancel`: calls the shipment off. The reason is required - the backend answers 400
  * without one - and is kept in the shipment's comment. Up to ACCEPTED only, 409 after.
@@ -369,12 +376,16 @@ export function cancelShipment(
   })
 }
 
-/** The statuses in which the shipment's own data can still be changed - up to the carrier's acceptance. */
+/**
+ * The statuses in which the shipment's own data can still be changed - up to the carrier's acceptance, and
+ * after the carrier declined it.
+ */
 export const DATA_CHANGEABLE_STATES: readonly ShipmentState[] = [
   'CREATED',
   'READY',
   'DISPATCH_REQUESTED',
   'ACCEPTED',
+  'DECLINED',
 ]
 
 export function canEditShipmentData(status: string): boolean {
@@ -491,12 +502,23 @@ export const CARRIER_HAS_IT_STATES: readonly ShipmentState[] = [
 ]
 
 /**
- * Whether the page offers "Assign distributor" at all: everywhere except once the carrier has the
- * shipment. In CREATED and CANCELLED it is offered but not usable (`canAssignDistributor`), with the
- * reason in its tooltip.
+ * Whether this carrier cannot be picked: they have the shipment already. One who declined it does not - the
+ * planner may ask them again.
+ */
+export function holdsShipment(
+  distributorId: number,
+  shipment: { distributorId?: number | null; status: string },
+): boolean {
+  return distributorId === shipment.distributorId && shipment.status !== 'DECLINED'
+}
+
+/**
+ * Whether the page offers "Assign distributor" at all: for a shipment that is READY, and for a DECLINED one,
+ * which has to be handed to somebody else. The backend would take the call in DISPATCH_REQUESTED too, the
+ * page does not offer it there.
  */
 export function showsAssignButton(status: string): boolean {
-  return !(CARRIER_HAS_IT_STATES as readonly string[]).includes(status)
+  return status === 'READY' || status === 'DECLINED'
 }
 
 /**

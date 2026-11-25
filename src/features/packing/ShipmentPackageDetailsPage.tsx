@@ -12,10 +12,13 @@ import {
   updateShipmentPackage,
   type ShipmentPackageDto,
 } from './shipmentPackages'
+import { mayPack } from './orderItems'
+import { meQueryOptions } from '../auth/auth'
 import { cell } from '../../shared/lib/format'
 import { RecycleIcon } from './RecycleIcon'
 import { ReplaceContents } from './ReplaceContents'
 import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/shipment-packages/$shipmentPackageId')
 
@@ -232,9 +235,12 @@ function CompletePackage({
             complete.mutate(undefined, { onSettled: () => setAsking(false) })
           }}
         >
-          Complete this container with {itemCount} item{itemCount === 1 ? '' : 's'}? Once it is
-          completed its contents are fixed - no item can be added, changed or taken out any more -
-          and it can go into a shipment.
+          <p className="mb-2">
+            Complete this container with {itemCount} item{itemCount === 1 ? '' : 's'}?
+          </p>
+          <p className="mb-2">Once it is completed its contents are fixed:</p>
+          <p className="mb-2">No item can be added, changed or taken out any more.</p>
+          <p className="mb-0">The container can then go into a shipment.</p>
         </ConfirmModal>
       )}
       {reason && <p className="mt-2 mb-0 text-body-secondary small">{reason}</p>}
@@ -325,6 +331,9 @@ export function ShipmentPackageDetailsPage() {
   const { shipmentPackageId } = route.useParams()
   const { data: pack, isPending, error } = useQuery(shipmentPackageQueryOptions(shipmentPackageId))
   const queryClient = useQueryClient()
+  const { data: user } = useQuery(meQueryOptions)
+  // Everything that changes a container is packing work (ADMIN, WAREHOUSE); anybody else only reads.
+  const packs = mayPack(user)
   const [itemNotice, setItemNotice] = useState<{ text: string; failed: boolean } | null>(null)
   const removeItem = useMutation({
     mutationFn: (packageItemId: string) => deleteShipmentItem(shipmentPackageId, packageItemId),
@@ -339,8 +348,10 @@ export function ShipmentPackageDetailsPage() {
   const entries = pack ? Object.entries(pack) : []
   const lists = entries.filter(([, value]) => Array.isArray(value))
   const typeKey = TYPE_KEYS.find((key) => pack && key in pack)
+  // What the edit form holds is not listed twice; without the form it belongs to the list.
   const fields = entries.filter(
-    ([key, value]) => !Array.isArray(value) && key !== typeKey && !EDITABLE_KEYS.includes(key),
+    ([key, value]) =>
+      !Array.isArray(value) && !(packs && (key === typeKey || EDITABLE_KEYS.includes(key))),
   )
   const packageNumber = cell(pack?.packageNumber) || 'N/A'
 
@@ -348,7 +359,7 @@ export function ShipmentPackageDetailsPage() {
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5">Container {packageNumber}</h3>
-        {isPending && <p className="mb-0">Loading details…</p>}
+        {isPending && <LoadingBar label="Loading details…" className="" />}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
         {pack && (
           <>
@@ -360,12 +371,14 @@ export function ShipmentPackageDetailsPage() {
                 </div>
               ))}
             </dl>
-            <EditForm
-              key={shipmentPackageId}
-              id={shipmentPackageId}
-              pack={pack}
-              typeKey={typeKey}
-            />
+            {packs && (
+              <EditForm
+                key={shipmentPackageId}
+                id={shipmentPackageId}
+                pack={pack}
+                typeKey={typeKey}
+              />
+            )}
             {lists.map(([key, value]) => (
               <section key={key}>
                 <h4 className="h6 mt-4">{key}</h4>
@@ -373,7 +386,7 @@ export function ShipmentPackageDetailsPage() {
                   <RowTable
                     rows={value}
                     onDelete={
-                      key === 'items'
+                      packs && key === 'items'
                         ? (id) => {
                             setItemNotice(null)
                             removeItem.mutate(id)
@@ -395,18 +408,21 @@ export function ShipmentPackageDetailsPage() {
                     {itemNotice.text}
                   </p>
                 )}
-                {key === 'items' &&
+                {packs &&
+                  key === 'items' &&
                   canRecycle(pack.status, Array.isArray(value) ? value.length : 0) && (
                     <RecycleContainer key={`recycle-${shipmentPackageId}`} id={shipmentPackageId} />
                   )}
-                {key === 'items' && (pack.status === undefined || pack.status === 'OPEN') && (
-                  <ReplaceContents
-                    key={`replace-${shipmentPackageId}-${isRowList(value) ? value.map((row) => cell(row.id)).join(',') : ''}`}
-                    id={shipmentPackageId}
-                    items={isRowList(value) ? value : []}
-                  />
-                )}
-                {key === 'items' && (
+                {packs &&
+                  key === 'items' &&
+                  (pack.status === undefined || pack.status === 'OPEN') && (
+                    <ReplaceContents
+                      key={`replace-${shipmentPackageId}-${isRowList(value) ? value.map((row) => cell(row.id)).join(',') : ''}`}
+                      id={shipmentPackageId}
+                      items={isRowList(value) ? value : []}
+                    />
+                  )}
+                {packs && key === 'items' && (
                   <CompletePackage
                     key={shipmentPackageId}
                     id={shipmentPackageId}

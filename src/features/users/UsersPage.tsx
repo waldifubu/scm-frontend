@@ -26,6 +26,7 @@ import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { Pager } from '../../shared/ui/Pager'
 import { SortableHeader } from '../../shared/ui/SortableHeader'
 import { nextSort, type TableSort } from '../../shared/lib/tableSort'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * All users (`GET /users`), for admins only: the backend answers every other role with a 403, so the page says so
@@ -59,7 +60,7 @@ export function UsersPage() {
         <div className="card-body">
           <PageTitle icon="users">Users</PageTitle>
         </div>
-        {isPending && <p className="p-3 mb-0">Loading users…</p>}
+        {isPending && <LoadingBar label="Loading users…" />}
         {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
         {toggle.error && <p className="p-3 mb-0 text-danger">{toggle.error.message}</p>}
         {data && data.content.length === 0 && (
@@ -195,7 +196,7 @@ function UserDetails({
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5">User {user ? displayName(user) : id}</h3>
-        {isPending && <p className="mb-0">Loading details…</p>}
+        {isPending && <LoadingBar label="Loading details…" className="" />}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
         {/* Keyed by what the server holds, so a reload after saving (or a toggle in the table) resets the form. */}
         {user && (

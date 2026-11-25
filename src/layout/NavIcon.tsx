@@ -32,6 +32,8 @@ export function NavIcon({ name }: { name: SidebarLink['icon'] }) {
     'supplier-rules': 'M3 12h6m0 0 5-6h7m-12 6 5 6h7M18 3l3 3-3 3m0 6 3 3-3 3',
     // A signpost: which carrier a shipment is sent with.
     'distributor-rules': 'M12 3v18M7 5h10l3 3-3 3H7zM17 14H7l-3 3 3 3h10z',
+    // A price tag: what a product is filed under.
+    categories: 'M3 11V4h7l10 10-7 7L3 11Zm4-3h.01',
     requests: 'M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8M1 4h22v4H1zM12 11v6M9 14l3 3 3-3',
     picking: 'M9 6h11M9 12h11M9 18h11M3 6l1 1 2-2m-3 7 1 1 2-2m-3 7 1 1 2-2',
     'new-orders': 'M7 3h8l4 4v14H7zM15 3v5h5m-9 5h5m-5 4h5',

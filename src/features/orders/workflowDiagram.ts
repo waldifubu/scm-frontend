@@ -6,7 +6,7 @@ import type { OrderWorkflowDiagram } from './workflow'
  * It is drawn from what the backend sends (`GET /orders/workflow/diagram`, see `flowFrom`): the nodes, the arrows
  * worth drawing - a dotted one for a step that takes the order back - and the ends, which stand beside the flow
  * instead of hanging off one arbitrary node. This copy is only what is drawn until that answer is there, or when
- * the caller may not ask for it (SUPPLIER, DISTRIBUTOR); a test holds it against the backend's table.
+ * the caller may not ask for it (SUPPLIER); a test holds it against the backend's table.
  */
 const FLOW = `
   CREATED["CREATED"] --> ACKNOWLEDGED["ACKNOWLEDGED"]

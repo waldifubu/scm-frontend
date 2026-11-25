@@ -12,6 +12,7 @@ import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
 import { hasRole } from '../../shared/api/types'
 import { formOf, formProblem, patchOf, type ComponentForm } from './componentEdit'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/components/$sku')
 
@@ -183,7 +184,7 @@ export function ComponentDetailsPage() {
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5">Component {sku}</h3>
-        {isPending && <p className="mb-0">Loading details…</p>}
+        {isPending && <LoadingBar label="Loading details…" className="" />}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
         {component && (
           <>

@@ -1,94 +1,77 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, Outlet } from '@tanstack/react-router'
-import { useState } from 'react'
 import { meQueryOptions } from '../auth/auth'
-import { productsQueryOptions, type ProductFilter } from './products'
+import { productsQueryOptions } from './products'
+import { PRODUCT_SORT_KEYS, productColumns } from './productColumns'
 import { hasRole } from '../../shared/api/types'
 import { PageTitle } from '../../layout/PageTitle'
-import { Pager } from '../../shared/ui/Pager'
+import { ServerTable } from '../../shared/ui/ServerTable'
+import { listSort, useServerTableState } from '../../shared/lib/serverTable'
 import { NewProductForm } from './NewProductForm'
+import { DeleteProductButton } from './DeleteProductButton'
+import { EditIcon } from '../categories/CategoryIcons'
 import { NewRuleIcon, NewRuleToggle } from '../rules/RuleParts'
 import { cell } from '../../shared/lib/format'
 
-const columns = [
-  { key: 'articleNo', label: 'articleNo' },
-  { key: 'name', label: 'name' },
-  { key: 'unitPrice', label: 'unitPrice' },
-  { key: 'weight', label: 'weight (kg)' },
-]
-
-function ProductsTable({
-  filter,
-  onPage,
-}: {
-  filter: ProductFilter
-  onPage: (page: number) => void
-}) {
-  const { data, isPending, error } = useQuery(productsQueryOptions(filter))
+function ProductsTable() {
+  const { pagination, sorting, setPagination, setSorting } = useServerTableState()
+  const { data, isPending, isFetching, error } = useQuery({
+    ...productsQueryOptions({
+      page: pagination.pageIndex,
+      size: pagination.pageSize,
+      ...listSort(sorting, PRODUCT_SORT_KEYS),
+    }),
+    // The old page stays while the next one loads, so a click on a head does not empty the table.
+    placeholderData: keepPreviousData,
+  })
   const { data: user } = useQuery(meQueryOptions)
-  const canEdit = user ? hasRole(user, 'MANAGER') : false
-
-  if (isPending) return <p className="p-3 mb-0">Loading products…</p>
-  if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
-  const products = data.content
-  if (products.length === 0) return <p className="p-3 mb-0 text-body-secondary">No products.</p>
+  const canEdit = user ? hasRole(user, 'ADMIN') || hasRole(user, 'MANAGER') : false
 
   return (
-    <>
-      <div className="table-responsive">
-        <table className="table table-striped table-sm mb-0">
-          <thead>
-            <tr>
-              {columns.map((column) => (
-                <th key={column.key}>{column.label}</th>
-              ))}
-              {canEdit && <th />}
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product, index) => (
-              <tr key={cell(product.articleNo) || index}>
-                {columns.map((column) => (
-                  <td key={column.key}>
-                    <Link
-                      to="/products/$articleNo"
-                      params={{ articleNo: cell(product.articleNo) }}
-                      className="text-decoration-none text-reset"
-                    >
-                      {cell(product[column.key])}
-                    </Link>
-                  </td>
-                ))}
-                {canEdit && (
-                  <td className="text-end">
-                    <Link
-                      to="/products/$articleNo/edit"
-                      params={{ articleNo: cell(product.articleNo) }}
-                      className="btn btn-sm btn-outline-secondary py-0"
-                      title="Edit"
-                      aria-label={`Edit product ${cell(product.articleNo)}`}
-                    >
-                      ✎
-                    </Link>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <dl className="row justify-content-end small text-body-secondary px-2 mt-2 mb-2">
-        <dd className="col-auto mb-0 me-auto">
-          <Pager page={data.page} size={data.size} total={data.total} onPage={onPage} />
-        </dd>
-        <dt className="col-auto">total</dt>
-        <dd className="col-auto">{data.total}</dd>
-        <dt className="col-auto">page</dt>
-        <dd className="col-auto">{data.page}</dd>
-        <dt className="col-auto">size</dt>
-        <dd className="col-auto">{data.size}</dd>
-      </dl>
-    </>
+    <ServerTable
+      columns={productColumns}
+      data={data}
+      isPending={isPending}
+      isFetching={isFetching}
+      error={error}
+      loading="Loading products…"
+      empty="No products."
+      rowId={(product, index) => cell(product.articleNo) || String(index)}
+      renderCell={(column, product) => (
+        <Link
+          to="/products/$articleNo"
+          params={{ articleNo: cell(product.articleNo) }}
+          className="text-decoration-none text-reset"
+        >
+          {cell(product[column])}
+        </Link>
+      )}
+      trailing={
+        canEdit
+          ? {
+              className: 'text-end',
+              render: (product) => (
+                <Link
+                  to="/products/$articleNo/edit"
+                  params={{ articleNo: cell(product.articleNo) }}
+                  className="btn btn-sm d-inline-flex align-items-center gap-2"
+                  // Filled for the product whose form is open below, as in the storehouses.
+                  activeProps={{ className: 'btn-primary' }}
+                  inactiveProps={{ className: 'btn-outline-primary' }}
+                  aria-label={`Edit product ${cell(product.articleNo)}`}
+                >
+                  <EditIcon />
+                  Edit
+                </Link>
+              ),
+            }
+          : undefined
+      }
+      pagination={pagination}
+      sorting={sorting}
+      onPagination={setPagination}
+      onSorting={setSorting}
+    />
   )
 }
 
@@ -97,13 +80,6 @@ export function ProductsPage() {
   const { data: user } = useQuery(meQueryOptions)
   // `POST /products` is for admins and managers.
   const canCreate = user ? hasRole(user, 'ADMIN') || hasRole(user, 'MANAGER') : false
-  const [page, setPage] = useState('')
-  const [size, setSize] = useState('')
-  const filter: ProductFilter = {
-    page: page === '' ? undefined : Number(page),
-    size: size === '' ? undefined : Number(size),
-  }
-
   return (
     <>
       <div className="card shadow-sm">
@@ -111,32 +87,18 @@ export function ProductsPage() {
           <PageTitle icon="products" className="me-auto">
             Products
           </PageTitle>
-          <input
-            type="number"
-            min={0}
-            className="form-control form-control-sm"
-            style={{ width: '6rem' }}
-            placeholder="page"
-            aria-label="Page"
-            value={page}
-            onChange={(e) => setPage(e.target.value)}
-          />
-          <input
-            type="number"
-            min={1}
-            className="form-control form-control-sm"
-            style={{ width: '6rem' }}
-            placeholder="size"
-            aria-label="Size"
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-          />
         </div>
-        <ProductsTable filter={filter} onPage={(next) => setPage(String(next))} />
+        <ProductsTable />
       </div>
       <Outlet />
       {canCreate && (
-        <NewRuleToggle label="New Product" formId="new-product-form" icon={<NewRuleIcon />}>
+        <NewRuleToggle
+          label="New Product"
+          formId="new-product-form"
+          icon={<NewRuleIcon />}
+          // `DELETE /products/{articleNo}` is open to the same roles as creating one.
+          aside={<DeleteProductButton />}
+        >
           {(close) => <NewProductForm onDone={close} />}
         </NewRuleToggle>
       )}

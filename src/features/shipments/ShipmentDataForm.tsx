@@ -13,8 +13,8 @@ import {
 /**
  * The shipment's own data as text fields: address, method, requested delivery date, comment - and when it
  * was created, which the system sets and a person cannot change, so it is shown but not typed into.
- * Saving is `PUT /shipments/{id}`; the backend takes it up to ACCEPTED and answers 409 after, so from
- * IN_TRANSIT on the fields are shown but locked.
+ * Saving is `PUT /shipments/{id}`; the backend takes it up to ACCEPTED and in DECLINED and answers 409
+ * otherwise, so from IN_TRANSIT on and in CANCELLED the fields are shown but locked.
  */
 export function ShipmentDataForm({
   shipment,
@@ -61,7 +61,7 @@ export function ShipmentDataForm({
       {!editable && (
         <p className="text-body-secondary small">
           A shipment in {shipment.status} can no longer be changed - its data can be edited up to
-          ACCEPTED.
+          ACCEPTED and while it is DECLINED.
         </p>
       )}
       <div className="row g-3">

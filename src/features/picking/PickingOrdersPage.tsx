@@ -1,17 +1,36 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTable, type PaginationState, type SortingState } from '@tanstack/react-table'
 import { useEffect, useState } from 'react'
 import {
   pickingOrdersQueryOptions,
   pickOrder,
   pickReservation,
   releasePick,
+  mayPick,
   releaseQuestion,
+  searchedOrderNo,
+  type PickingOrderDto,
   type PickingStage,
 } from './pickingOrders'
+import { PICKING_SORT_KEYS, pickingColumns } from './pickingColumns'
+import { ordersQueryOptions } from '../orders/orders'
+import { meQueryOptions } from '../auth/auth'
+import { FulfillmentStatusBadge } from '../packing/FulfillmentStatusBadge'
 import { productLabel, cell } from '../../shared/lib/format'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
+import { entityLinkOf } from '../../shared/lib/entityLinks'
+import { EntityLinkAnchor } from '../../shared/ui/EntityLinkAnchor'
 import { PageTitle } from '../../layout/PageTitle'
-import { Pager } from '../../shared/ui/Pager'
+import { ServerTableFooter } from '../../shared/ui/ServerTableFooter'
+import { SortableHeader } from '../../shared/ui/SortableHeader'
+import {
+  cycleSort,
+  listSort,
+  serverTableFeatures,
+  toTableSort,
+  useServerTableState,
+} from '../../shared/lib/serverTable'
+import { LoadingBar, ReloadBar } from '../../shared/ui/LoadingBar'
 
 const MESSAGE_SECONDS = 5
 
@@ -53,18 +72,19 @@ function PickIcon() {
   )
 }
 
-// The name is shown with the article number, in that one column.
-const HIDDEN_COLUMNS = new Set(['sku', 'storehouseId', 'productName'])
-
 const DATE_COLUMNS = new Set(['pickedAt', 'expiresAt'])
 
-const HEADS: Record<string, string> = { articleNo: 'product' }
+const NO_ITEMS: PickingOrderDto[] = []
 
 function renderCell(column: string, item: Record<string, unknown>) {
   const value = item[column]
+  // The order number leads to the order.
+  const link = entityLinkOf(column, value)
+  if (link) return <EntityLinkAnchor link={link} />
   if (column === 'storehouseName' && item.storehouseId != null) {
     return `${cell(value)} (${cell(item.storehouseId)})`
   }
+  if (column === 'fulfillmentStatus') return <FulfillmentStatusBadge status={value} />
   if (column === 'articleNo') return productLabel(item.productName, value)
   if (DATE_COLUMNS.has(column) && typeof value === 'string') {
     const date = new Date(value)
@@ -84,13 +104,177 @@ function reservationId(item: Record<string, unknown>): string {
   return cell(item.reservationId ?? item.id)
 }
 
+/** The rows of one stage, sorted and paged by the backend, each with the button of that stage. */
+function PickingTable({
+  stage,
+  orderNo,
+  pagination,
+  sorting,
+  onPagination,
+  onSorting,
+  busy,
+  actions,
+  onPick,
+  onRelease,
+  onRow,
+}: {
+  stage: PickingStage
+  orderNo: string | undefined
+  pagination: PaginationState
+  sorting: SortingState
+  onPagination: (next: PaginationState) => void
+  onSorting: (next: SortingState) => void
+  busy: boolean
+  /** Whether the rows carry their button; without it the column is not there at all. */
+  actions: boolean
+  onPick: (item: PickingOrderDto) => void
+  onRelease: (item: PickingOrderDto) => void
+  /** A click on a row beside its link and button; left out, the rows are not clickable. */
+  onRow?: (item: PickingOrderDto) => void
+}) {
+  const { data, isPending, isFetching, error } = useQuery({
+    ...pickingOrdersQueryOptions(pagination.pageIndex, stage, {
+      size: pagination.pageSize,
+      orderNo,
+      ...listSort(sorting, PICKING_SORT_KEYS),
+    }),
+    // The old page stays while the next one loads, so a click on a head does not empty the table.
+    placeholderData: keepPreviousData,
+  })
+
+  const table = useTable({
+    features: serverTableFeatures,
+    columns: pickingColumns,
+    data: data?.content ?? NO_ITEMS,
+    rowCount: data?.total ?? 0,
+    state: { pagination, sorting },
+    manualPagination: true,
+    manualSorting: true,
+    // The backend sorts by one column.
+    enableMultiSort: false,
+    sortDescFirst: false,
+    getRowId: (item, index) => reservationId(item) || String(index),
+    onPaginationChange: (updater) =>
+      onPagination(typeof updater === 'function' ? updater(pagination) : updater),
+    onSortingChange: (updater) =>
+      onSorting(typeof updater === 'function' ? updater(sorting) : updater),
+  })
+
+  if (isPending) return <LoadingBar label="Loading picking orders…" />
+  if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
+  const rows = table.getRowModel().rows
+  // A page can run empty while others still hold rows (the last one was just picked): then the footer stays.
+  if (rows.length === 0 && table.getRowCount() === 0) {
+    return (
+      <p className="p-3 mb-0 text-body-secondary">
+        {stage === 'ACTIVE' ? 'No picking orders' : 'Nothing has been picked'}
+        {orderNo ? ` for order ${orderNo}.` : '.'}
+      </p>
+    )
+  }
+
+  const tableSort = toTableSort(sorting)
+
+  return (
+    <>
+      <ReloadBar active={isFetching} />
+      <div className="table-responsive">
+        <table className="table table-striped table-sm align-middle mb-0">
+          <thead>
+            {table.getHeaderGroups().map((group) => (
+              <tr key={group.id}>
+                {group.headers.map((header) =>
+                  header.column.getCanSort() ? (
+                    <SortableHeader
+                      key={header.id}
+                      label={String(header.column.columnDef.header)}
+                      column={header.column.id}
+                      sort={tableSort}
+                      onSort={() => cycleSort(header.column)}
+                    />
+                  ) : (
+                    <th key={header.id}>
+                      <table.FlexRender header={header} />
+                    </th>
+                  ),
+                )}
+                {actions && <th />}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row.id}
+                style={onRow && { cursor: 'pointer' }}
+                onClick={(event) => {
+                  // The order link and the buttons do their own thing.
+                  if ((event.target as HTMLElement).closest('a, button')) return
+                  onRow?.(row.original)
+                }}
+              >
+                {row.getAllCells().map((tableCell) => (
+                  <td key={tableCell.id}>{renderCell(tableCell.column.id, row.original)}</td>
+                ))}
+                {actions && (
+                  <td className="text-end">
+                    {stage === 'ACTIVE' ? (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary py-0 d-inline-flex align-items-center gap-1"
+                        disabled={busy}
+                        onClick={() => onPick(row.original)}
+                      >
+                        <PickIcon />
+                        Pick
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-danger py-0 d-inline-flex align-items-center gap-1"
+                        disabled={busy}
+                        onClick={() => onRelease(row.original)}
+                      >
+                        <ReleaseIcon />
+                        Release
+                      </button>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ServerTableFooter
+        pagination={pagination}
+        total={table.getRowCount()}
+        onPagination={onPagination}
+      />
+    </>
+  )
+}
+
 /** The page: the table, one "pick" button per row, and below it a field to pick a whole order. */
 export function PickingOrdersPage() {
   const queryClient = useQueryClient()
-  const [page, setPage] = useState(0)
+  const { pagination, sorting, setPagination, setSorting, firstPage } = useServerTableState()
   const [stage, setStage] = useState<PickingStage>('ACTIVE')
-  const { data, isPending, error } = useQuery(pickingOrdersQueryOptions(page, stage))
+  const { data: user } = useQuery(meQueryOptions)
+  const picks = mayPick(user)
   const [orderNo, setOrderNo] = useState('')
+  // The search above the table; the field below it names the order to pick.
+  const [search, setSearch] = useState('')
+  // Suggestions for the search: the orders there are, and those the listed stage has rows for.
+  const { data: orders } = useQuery(ordersQueryOptions())
+  const { data: listed } = useQuery(pickingOrdersQueryOptions(0, stage, { size: 100 }))
+  const orderNumbers = [
+    ...new Set(
+      [...(listed?.content ?? []), ...(orders?.content ?? [])]
+        .map((row) => cell(row.orderNo))
+        .filter((number) => number !== ''),
+    ),
+  ].sort()
   const [notice, setNotice] = useState<{ text: string; failed: boolean } | null>(null)
 
   const action = <T,>(mutationFn: (value: T) => Promise<string>) => ({
@@ -118,98 +302,62 @@ export function PickingOrdersPage() {
     return () => clearTimeout(timer)
   }, [notice])
 
-  const items = data?.content ?? []
-  const columns = [...new Set(items.flatMap((item) => Object.keys(item)))].filter(
-    (c) => !HIDDEN_COLUMNS.has(c),
-  )
-
   return (
     <div className="card shadow-sm">
       <div className="card-body d-flex flex-wrap gap-2 align-items-center">
         <PageTitle icon="picking" className="me-auto">
           Picking Orders
         </PageTitle>
-        <select
-          className="form-select form-select-sm w-auto"
-          aria-label="Stage"
-          value={stage}
-          onChange={(e) => {
-            setStage(e.target.value as PickingStage)
-            // Page 3 of what is still to be picked says nothing about what has been picked.
-            setPage(0)
-          }}
-        >
-          <option value="ACTIVE">To pick</option>
-          <option value="CONSUMED">Picked</option>
-        </select>
+        {/* One group, so the search stays beside the stage when the title needs the room. */}
+        <div className="d-flex gap-2">
+          <input
+            className="form-control form-control-sm w-auto"
+            aria-label="Search by order number"
+            placeholder="Order number"
+            inputMode="numeric"
+            list="picking-search-numbers"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              // The matches start at their first page.
+              firstPage()
+            }}
+          />
+          <datalist id="picking-search-numbers">
+            {orderNumbers.map((number) => (
+              <option key={number} value={number} />
+            ))}
+          </datalist>
+          <select
+            className="form-select form-select-sm w-auto"
+            aria-label="Stage"
+            value={stage}
+            onChange={(e) => {
+              setStage(e.target.value as PickingStage)
+              // Page 3 of what is still to be picked says nothing about what has been picked.
+              firstPage()
+            }}
+          >
+            <option value="ACTIVE">To pick</option>
+            <option value="CONSUMED">Picked</option>
+          </select>
+        </div>
       </div>
 
-      {isPending && <p className="p-3 mb-0">Loading picking orders…</p>}
-      {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
-      {data && items.length === 0 && (
-        <p className="p-3 mb-0 text-body-secondary">
-          {stage === 'ACTIVE' ? 'No picking orders.' : 'Nothing has been picked.'}
-        </p>
-      )}
-      {data && items.length > 0 && (
-        <>
-          <div className="table-responsive">
-            <table className="table table-striped table-sm mb-0">
-              <thead>
-                <tr>
-                  {columns.map((column) => (
-                    <th key={column}>{HEADS[column] ?? column}</th>
-                  ))}
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item, index) => (
-                  <tr key={cell(item.id) || index}>
-                    {columns.map((column) => (
-                      <td key={column}>{renderCell(column, item)}</td>
-                    ))}
-                    <td className="text-end">
-                      {stage === 'ACTIVE' ? (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-primary py-0 d-inline-flex align-items-center gap-1"
-                          disabled={busy}
-                          onClick={() => pick.mutate(reservationId(item))}
-                        >
-                          <PickIcon />
-                          Pick
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-danger py-0 d-inline-flex align-items-center gap-1"
-                          disabled={busy}
-                          onClick={() => setReleasing(item)}
-                        >
-                          <ReleaseIcon />
-                          Release
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <dl className="row justify-content-end small text-body-secondary px-2 mt-2 mb-2">
-            <dd className="col-auto mb-0 me-auto">
-              <Pager page={data.page} size={data.size} total={data.total} onPage={setPage} />
-            </dd>
-            <dt className="col-auto">total</dt>
-            <dd className="col-auto">{data.total}</dd>
-            <dt className="col-auto">page</dt>
-            <dd className="col-auto">{data.page}</dd>
-            <dt className="col-auto">size</dt>
-            <dd className="col-auto">{data.size}</dd>
-          </dl>
-        </>
-      )}
+      <PickingTable
+        stage={stage}
+        orderNo={searchedOrderNo(search)}
+        pagination={pagination}
+        sorting={sorting}
+        onPagination={setPagination}
+        onSorting={setSorting}
+        busy={busy}
+        actions={picks}
+        onPick={(item) => pick.mutate(reservationId(item))}
+        onRelease={setReleasing}
+        // Only while the field below is there to take the number.
+        onRow={picks && stage === 'ACTIVE' ? (item) => setOrderNo(cell(item.orderNo)) : undefined}
+      />
 
       {releasing && (
         <ConfirmModal
@@ -225,7 +373,7 @@ export function PickingOrdersPage() {
           {releaseQuestion(releasing)}
         </ConfirmModal>
       )}
-      {stage === 'ACTIVE' && (
+      {picks && stage === 'ACTIVE' && (
         <form
           className="card-body d-flex flex-wrap gap-2 align-items-center"
           onSubmit={(e) => {

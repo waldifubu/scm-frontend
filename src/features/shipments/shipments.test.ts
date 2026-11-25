@@ -28,6 +28,7 @@ import {
   fetchMyShipments,
   fetchShipment,
   fetchShipments,
+  holdsShipment,
   sortParams,
   statusBadgeClass,
   SHIPMENT_STATES,
@@ -147,9 +148,8 @@ describe('canAssignDistributor', () => {
     }
   })
 
-  it('lets the planner hand a declined shipment on, and shows the button to do it', () => {
+  it('counts a declined shipment as assignable, as the backend does', () => {
     expect(canAssignDistributor('DECLINED')).toBe(true)
-    expect(showsAssignButton('DECLINED')).toBe(true)
   })
 
   it('refuses a status it does not know', () => {
@@ -314,34 +314,39 @@ describe('fetchMyShipments', () => {
   })
 })
 
+describe('holdsShipment', () => {
+  it('blocks the carrier who has the shipment, not one who declined it', () => {
+    const declined = { distributorId: 3, status: 'DECLINED' }
+    expect(holdsShipment(3, declined)).toBe(false)
+    expect(holdsShipment(4, declined)).toBe(false)
+    expect(holdsShipment(3, { distributorId: 3, status: 'DISPATCH_REQUESTED' })).toBe(true)
+    expect(holdsShipment(3, { distributorId: null, status: 'READY' })).toBe(false)
+  })
+})
+
 describe('showsAssignButton', () => {
+  it('offers the button for a READY or a DECLINED shipment only', () => {
+    for (const state of SHIPMENT_STATES) {
+      expect(showsAssignButton(state)).toBe(state === 'READY' || state === 'DECLINED')
+    }
+    expect(showsAssignButton('SOMETHING_NEW')).toBe(false)
+  })
+
   it('never offers the button once the carrier has the shipment or has finished it', () => {
     expect(CARRIER_HAS_IT_STATES).toEqual(['ACCEPTED', 'IN_TRANSIT', 'DELIVERED'])
-    for (const state of ['ACCEPTED', 'IN_TRANSIT', 'DELIVERED']) {
-      expect(showsAssignButton(state)).toBe(false)
-    }
+    for (const state of CARRIER_HAS_IT_STATES) expect(showsAssignButton(state)).toBe(false)
   })
 
-  it('offers it in every other status', () => {
-    for (const state of ['CREATED', 'READY', 'DISPATCH_REQUESTED', 'CANCELLED']) {
-      expect(showsAssignButton(state)).toBe(true)
-    }
-  })
-
-  it('offers it for a status it has not heard of, so a new status does not make the step vanish', () => {
-    expect(showsAssignButton('SOMETHING_NEW')).toBe(true)
-  })
-
-  it('never shows a button that could be used where the carrier already has the shipment', () => {
+  it('never shows a button the backend would refuse', () => {
     for (const state of SHIPMENT_STATES) {
-      if (canAssignDistributor(state)) expect(showsAssignButton(state)).toBe(true)
+      if (showsAssignButton(state)) expect(canAssignDistributor(state)).toBe(true)
     }
   })
 })
 
 describe('canEditShipmentData', () => {
-  it('allows the data to change up to ACCEPTED, as the backend does, and not after', () => {
-    for (const state of ['CREATED', 'READY', 'DISPATCH_REQUESTED', 'ACCEPTED'])
+  it('allows the data to change up to ACCEPTED and in DECLINED, as the backend does', () => {
+    for (const state of ['CREATED', 'READY', 'DISPATCH_REQUESTED', 'ACCEPTED', 'DECLINED'])
       expect(canEditShipmentData(state)).toBe(true)
     for (const state of ['IN_TRANSIT', 'DELIVERED', 'CANCELLED'])
       expect(canEditShipmentData(state)).toBe(false)
@@ -354,6 +359,7 @@ describe('canEditShipmentData', () => {
       'READY',
       'DISPATCH_REQUESTED',
       'ACCEPTED',
+      'DECLINED',
     ])
   })
 })
@@ -573,13 +579,9 @@ describe('trackingNumberError', () => {
 })
 
 describe('canSetTrackingNumber', () => {
-  it('is there from the handover until the shipment is reported on its way', () => {
-    for (const state of ['DISPATCH_REQUESTED', 'ACCEPTED'])
+  it('is there from the handover until the shipment is delivered', () => {
+    for (const state of ['DISPATCH_REQUESTED', 'ACCEPTED', 'IN_TRANSIT'])
       expect(canSetTrackingNumber(state)).toBe(true)
-  })
-
-  it('is gone once the shipment is on the road - the number is fixed then', () => {
-    expect(canSetTrackingNumber('IN_TRANSIT')).toBe(false)
   })
 
   it('is not there once it is over, turned down or not handed over yet', () => {

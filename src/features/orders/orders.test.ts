@@ -50,7 +50,7 @@ describe('ORDER_STATUSES', () => {
 
 describe('the order filters', () => {
   it('offer the groups first and then every status', () => {
-    expect(ORDER_FILTERS.slice(0, 2)).toEqual(['NOT_COMPLETED', 'ALL'])
+    expect(ORDER_FILTERS.slice(0, 2)).toEqual(['ALL', 'NOT_COMPLETED'])
     expect(ORDER_FILTERS.slice(2)).toEqual([...ORDER_STATUSES])
   })
 
@@ -86,12 +86,13 @@ describe('the order filters', () => {
     expect(orderFilterLabel('WAIT_SUPPLY')).toBe('WAIT SUPPLY')
   })
 
-  it('start a manager on the open orders and everybody else on the new ones', () => {
+  it('start an administrator on all orders, a manager on the open ones and everybody else on the new ones', () => {
     const as = (...roles: string[]) => ({ roles }) as unknown as UserDto
     expect(defaultOrderFilter(as('MANAGER'))).toBe('NOT_COMPLETED')
     expect(defaultOrderFilter(as('ROLE_MANAGER', 'WAREHOUSE'))).toBe('NOT_COMPLETED')
     expect(defaultOrderFilter(as('CUSTOMER'))).toBe('CREATED')
-    expect(defaultOrderFilter(as('ADMIN'))).toBe('CREATED')
+    expect(defaultOrderFilter(as('ADMIN'))).toBe('ALL')
+    expect(defaultOrderFilter(as('ADMIN', 'MANAGER'))).toBe('ALL')
     expect(defaultOrderFilter(undefined)).toBe('CREATED')
   })
 })

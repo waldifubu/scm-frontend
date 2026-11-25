@@ -1,9 +1,39 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
-import { packWholeOrder, wholeOrderLines } from './orderItems'
+import type { UserDto } from '../../shared/api/types'
+import { mayPack, packWholeOrder, wholeOrderHint, wholeOrderLines } from './orderItems'
 import { canRecycle, recycleShipmentPackage } from './shipmentPackages'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+})
+
+describe('who may pack, and what the button says about itself', () => {
+  const user = (...roles: string[]) => ({ roles }) as unknown as UserDto
+
+  it('is for the warehouse and the admin only', () => {
+    expect(mayPack(user('WAREHOUSE'))).toBe(true)
+    expect(mayPack(user('ADMIN'))).toBe(true)
+    expect(mayPack(user('MANAGER', 'LOGISTICS'))).toBe(false)
+    expect(mayPack(undefined)).toBe(false)
+  })
+
+  it('explains both buttons, and why the second cannot be pressed while it cannot', () => {
+    expect(wholeOrderHint(null).map((help) => help.title)).toEqual([
+      'Create Package',
+      'Pack whole order',
+    ])
+    expect(wholeOrderHint(null)[1]?.text).toContain('into one new package')
+    expect(wholeOrderHint(null).some((help) => help.problem !== undefined)).toBe(false)
+    expect(wholeOrderHint('Nothing is left to pack for this order.')[1]?.problem).toBe(
+      'Nothing is left to pack for this order.',
+    )
+  })
+
+  it('is plain text - tags in it would be shown as they are', () => {
+    for (const help of wholeOrderHint(null)) {
+      expect(help.title + help.text).not.toContain('<')
+    }
+  })
 })
 
 describe('wholeOrderLines', () => {

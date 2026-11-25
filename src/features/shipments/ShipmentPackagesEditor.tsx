@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { formatNumber } from '../../shared/lib/format'
 import { replacementProblem, replaceShipmentPackages, type ShipmentDetail } from './shipments'
 import { shippablePackagesQueryOptions } from './shippablePackages'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * Replaces what a CREATED shipment holds (`PUT /shipments/{id}/packages`): the packages it has now plus the free
@@ -64,7 +65,7 @@ export function ShipmentPackagesEditor({ shipment }: { shipment: ShipmentDetail 
         Tick what the shipment should hold: its own packages and free packed ones of the same
         customer.
       </p>
-      {free.isPending && <p className="mb-0">Loading free packages…</p>}
+      {free.isPending && <LoadingBar label="Loading free packages…" className="" />}
       {free.error && <p className="text-danger">{free.error.message}</p>}
       <ul className="list-unstyled mb-3">
         {rows.map((row) => (

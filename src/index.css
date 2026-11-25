@@ -386,3 +386,76 @@
     animation: none;
   }
 }
+
+/* Fulfillment status badges, one colour per status (see fulfillmentBadge). */
+.badge.fulfillment-waiting {
+  background-color: #6c757d;
+  color: #fff;
+}
+.badge.fulfillment-reserved {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.badge.fulfillment-picking {
+  background-color: #ffc107;
+  color: #000;
+}
+.badge.fulfillment-picked {
+  background-color: #fd7e14;
+  color: #000;
+}
+.badge.fulfillment-packing {
+  background-color: #8c5cd6;
+  color: #fff;
+}
+.badge.fulfillment-packed {
+  background-color: #4c2a9e;
+  color: #fff;
+}
+.badge.fulfillment-ready-for-dispatch {
+  background-color: #198754;
+  color: #fff;
+}
+.badge.fulfillment-cancelled {
+  background-color: #212529;
+  color: #fff;
+}
+.badge.fulfillment-unknown {
+  background-color: #e9ecef;
+  color: #212529;
+}
+
+/* The looping bar of LoadingBar: a piece that runs through its track again and again. */
+.loading-bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background-color: var(--bs-secondary-bg);
+}
+.loading-bar-run {
+  width: 40%;
+  height: 100%;
+  border-radius: 2px;
+  background-color: var(--bs-primary);
+  animation: loading-bar-run 1.2s ease-in-out infinite;
+}
+@keyframes loading-bar-run {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing travels: the whole track pulses instead, so loading still shows. */
+  .loading-bar-run {
+    width: 100%;
+    animation: loading-bar-pulse 2s ease-in-out infinite;
+  }
+}
+@keyframes loading-bar-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}

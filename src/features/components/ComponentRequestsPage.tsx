@@ -16,6 +16,7 @@ import { requestStatusClass } from './requestStatus'
 import { Chevron } from '../../shared/ui/Chevron'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /** The button's icon: a box going onto a shelf. */
 function BookIcon() {
@@ -205,7 +206,7 @@ export function ComponentRequestsPage() {
             </select>
           </label>
         </div>
-        {isPending && <p className="p-3 mb-0">Loading requests…</p>}
+        {isPending && <LoadingBar label="Loading requests…" />}
         {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
         {data && data.content.length === 0 && (
           <p className="p-3 mb-0 text-body-secondary">No requests.</p>

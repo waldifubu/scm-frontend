@@ -18,6 +18,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.108.4",
     "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-table": "^9.3.1",
     "bootstrap": "^5.3.9",
     "mermaid": "^12.3.0",
     "react": "^19.3.1",

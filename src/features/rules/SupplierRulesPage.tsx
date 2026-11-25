@@ -9,6 +9,7 @@ import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { SortableHeader } from '../../shared/ui/SortableHeader'
 import { nextSort, type TableSort } from '../../shared/lib/tableSort'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /** A condition the rule leaves open matches everything - the table says so instead of showing an empty cell. */
 function Any() {
@@ -44,7 +45,7 @@ export function SupplierRulesPage() {
         <div className="card-body">
           <PageTitle icon="supplier-rules">Supplier Rules</PageTitle>
         </div>
-        {isPending && <p className="p-3 mb-0">Loading rules…</p>}
+        {isPending && <LoadingBar label="Loading rules…" />}
         {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
         {data && data.content.length === 0 && (
           <p className="p-3 mb-0 text-body-secondary">No rules.</p>

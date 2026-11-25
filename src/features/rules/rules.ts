@@ -134,7 +134,7 @@ export const componentChoices = () =>
     queryFn: async (): Promise<Choice[]> => {
       const body = await api<
         Schemas['ComponentResponseDto'][] | { content: Schemas['ComponentResponseDto'][] }
-      >('/components')
+      >('/components?size=500')
       const rows = Array.isArray(body) ? body : body.content
       return rows.map((component) => ({
         id: component.id,

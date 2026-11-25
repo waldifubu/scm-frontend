@@ -1,19 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { ApiError } from '../../shared/api/client'
-import { fetchComponentByArticle, lookupMessage } from './components'
+import { fetchComponentByExternalId, lookupMessage } from './components'
 
 afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('fetchComponentByArticle', () => {
-  it('asks the article path with the reference encoded', async () => {
+describe('fetchComponentByExternalId', () => {
+  it('asks the external path with the reference encoded', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('{"sku":"abc"}', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
-    await expect(fetchComponentByArticle('A/B 1')).resolves.toEqual({ sku: 'abc' })
+    await expect(fetchComponentByExternalId('A/B 1')).resolves.toEqual({ sku: 'abc' })
 
-    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/1.0/components/article/A%2FB%201')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/1.0/components/external/A%2FB%201')
   })
 })
 

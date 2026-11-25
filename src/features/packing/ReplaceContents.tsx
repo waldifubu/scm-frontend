@@ -8,6 +8,7 @@ import {
 } from './containerContents'
 import { lonelyPackagesQueryOptions } from './packages'
 import type { ShipmentPackageDto } from './shipmentPackages'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * Replaces what an OPEN container holds (`PUT /packing/shipment/{id}/items`): its own items and the loose ones as
@@ -60,7 +61,7 @@ export function ReplaceContents({
         Tick what the container should hold: its own items and loose ones of the same order.
         Unticked items become loose again; ticking nothing empties the container.
       </p>
-      {loose.isPending && <p className="mb-0">Loading loose items…</p>}
+      {loose.isPending && <LoadingBar label="Loading loose items…" className="" />}
       {loose.error && <p className="text-danger">{loose.error.message}</p>}
       {candidates.length === 0 && !loose.isPending && (
         <p className="text-body-secondary mb-2">No items to choose from.</p>

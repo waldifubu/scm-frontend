@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
-  canAssignDistributor,
+  canCancelShipment,
   canChangePackages,
   canReportReady,
   removePackageFromShipment,
@@ -20,11 +20,13 @@ import {
 } from '../../shared/lib/format'
 import { shipmentFields } from './shipmentFields'
 import { AssignDistributorModal } from './AssignDistributorModal'
+import { CancelShipment } from './CancelShipment'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 import { LinkedValue } from '../../shared/ui/EntityLinkAnchor'
 import { ShipmentDataForm } from './ShipmentDataForm'
 import { ShipmentPackagesEditor } from './ShipmentPackagesEditor'
 import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/shipments/$shipmentId')
 
@@ -86,7 +88,7 @@ export function ShipmentDetailsPage() {
             <span className={`badge ${statusBadgeClass(shipment.status)}`}>{shipment.status}</span>
           )}
         </h3>
-        {isPending && <p className="mb-0">Loading details…</p>}
+        {isPending && <LoadingBar label="Loading details…" className="" />}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
         {shipment && (
           <>
@@ -229,21 +231,13 @@ export function ShipmentDetailsPage() {
                     setAskingReady(true)
                   }}
                 >
-                  Report ready
+                  Report shipment ready
                 </button>
               )}
               {showsAssignButton(shipment.status) && (
                 <button
                   type="button"
                   className="btn btn-orange"
-                  disabled={!canAssignDistributor(shipment.status)}
-                  title={
-                    canAssignDistributor(shipment.status)
-                      ? undefined
-                      : shipment.status === 'CREATED'
-                        ? 'Report the shipment ready first - a distributor can only be assigned from READY.'
-                        : `A shipment in ${shipment.status} cannot be handed to a distributor - only READY, DISPATCH_REQUESTED or DECLINED.`
-                  }
                   onClick={() => {
                     setNotice(null)
                     setAssigning(true)
@@ -251,6 +245,9 @@ export function ShipmentDetailsPage() {
                 >
                   Assign distributor
                 </button>
+              )}
+              {canCancelShipment(shipment.status) && (
+                <CancelShipment key={shipmentId} shipmentId={shipmentId} onCancelled={setNotice} />
               )}
               {notice && (
                 <span className="text-success" role="status">
@@ -266,7 +263,7 @@ export function ShipmentDetailsPage() {
             {askingReady && (
               <ConfirmModal
                 title="Report shipment ready"
-                confirmLabel="Report ready"
+                confirmLabel="Report shipment ready"
                 busy={ready.isPending}
                 onCancel={() => setAskingReady(false)}
                 onConfirm={() =>

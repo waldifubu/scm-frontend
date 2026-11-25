@@ -14,16 +14,36 @@ export interface ComponentPage {
   size: number
 }
 
-export async function fetchComponents(page = 0): Promise<ComponentPage> {
-  const body = await api<ComponentPage | ComponentDto[]>(withPage('/components', page))
+/** How the catalogue is cut and ordered; what is left out is the backend's default (25 rows, by id). */
+export interface ComponentListOptions {
+  size?: number
+  /** A name of `ComponentController.COMPONENT_SORTABLE`. */
+  sort?: string
+  order?: 'ASC' | 'DESC'
+}
+
+export function componentsPath(page = 0, options: ComponentListOptions = {}) {
+  const query = new URLSearchParams()
+  if (options.size !== undefined) query.set('size', String(options.size))
+  if (options.sort) query.set('sort', options.sort)
+  if (options.order) query.set('order', options.order)
+  const text = query.toString()
+  return withPage(text ? `/components?${text}` : '/components', page)
+}
+
+export async function fetchComponents(
+  page = 0,
+  options: ComponentListOptions = {},
+): Promise<ComponentPage> {
+  const body = await api<ComponentPage | ComponentDto[]>(componentsPath(page, options))
   if (Array.isArray(body)) return { content: body, total: body.length, page: 0, size: body.length }
   return { ...body, content: body.content ?? [] }
 }
 
-export const componentsQueryOptions = (page = 0) =>
+export const componentsQueryOptions = (page = 0, options: ComponentListOptions = {}) =>
   queryOptions({
-    queryKey: ['components', 'page', page] as const,
-    queryFn: () => fetchComponents(page),
+    queryKey: ['components', 'page', page, options] as const,
+    queryFn: () => fetchComponents(page, options),
   })
 
 /** `GET /components/{sku}`. */
@@ -38,17 +58,17 @@ export const componentQueryOptions = (sku: string) =>
   })
 
 /**
- * `GET /components/article/{articleNo}`: one component by its external ID. The path says article, but the backend matches the
- * component's unique `externalId` - the reference the outside world knows it by - and answers 404 for none.
+ * `GET /components/external/{externalId}`: one component by its unique external ID - the reference the outside world
+ * knows it by. 404 for none.
  */
-export function fetchComponentByArticle(articleNo: string): Promise<ComponentDto> {
-  return api<ComponentDto>(`/components/article/${encodeURIComponent(articleNo)}`)
+export function fetchComponentByExternalId(externalId: string): Promise<ComponentDto> {
+  return api<ComponentDto>(`/components/external/${encodeURIComponent(externalId)}`)
 }
 
 /** What the lookup tells the person when it fails: a 404 is "none", anything else is the backend's own text. */
-export function lookupMessage(error: unknown, articleNo: string): string {
+export function lookupMessage(error: unknown, externalId: string): string {
   if (error instanceof ApiError && error.status === 404) {
-    return `No component with external ID ${articleNo}.`
+    return `No component with external ID ${externalId}.`
   }
   return error instanceof Error ? error.message : 'The lookup failed.'
 }
@@ -115,7 +135,6 @@ export interface NewComponentBody {
   productArticleNo: number
   name: string
   manufacturer?: string
-  articleNo?: string
   description?: string
   externalId?: string
   weight?: number

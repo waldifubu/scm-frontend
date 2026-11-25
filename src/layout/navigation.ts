@@ -19,6 +19,7 @@ export type SidebarLink = {
     | '/users'
     | '/supplier-rules'
     | '/distributor-rules'
+    | '/categories'
     | '/picking-orders'
     | '/orders/new'
     | '/orders/create'
@@ -43,6 +44,7 @@ export type SidebarLink = {
     | 'users'
     | 'supplier-rules'
     | 'distributor-rules'
+    | 'categories'
     | 'picking'
     | 'new-orders'
     | 'create-order'
@@ -85,6 +87,25 @@ export function isSupplierOnly(user: UserDto): boolean {
   return holdsOnly(user, 'SUPPLIER')
 }
 
+/**
+ * Whether the user plans shipments and nothing else. The order side and the packing floor are not their pages;
+ * with another role next to it, that role's pages are theirs too.
+ */
+export function isLogisticsOnly(user: UserDto): boolean {
+  return holdsOnly(user, 'LOGISTICS')
+}
+
+/** The pages a planner of shipments does not get, each with everything below it: the backend refuses them. */
+const HIDDEN_FROM_LOGISTICS = ['/orders/new', '/orders/create', '/order-items', '/packages']
+
+/**
+ * The list of all orders (`GET /orders`) is refused too, but not what lies below it: one order and its history may
+ * be read, so `/orders/1042` stays open.
+ */
+const isHiddenFromLogistics = (path: string) =>
+  path === '/orders' ||
+  HIDDEN_FROM_LOGISTICS.some((page) => path === page || path.startsWith(`${page}/`))
+
 function holdsOnly(user: UserDto, role: (typeof ALL_ROLES)[number]): boolean {
   return (
     hasRole(user, role) &&
@@ -114,15 +135,6 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
     { to: '/picking-orders', label: 'Picking orders', icon: 'picking', visible: isWarehouse },
     { to: '/order-items', label: 'Order items', icon: 'items', visible: true },
     { to: '/order-items/packable', label: 'Packable items', icon: 'packable-items', visible: true },
-    // Every status change of every order (`GET /orders/history`): the roles that may read any order.
-    {
-      to: '/order-history',
-      label: 'Order History',
-      icon: 'order-history',
-      visible: ['ADMIN', 'MANAGER', 'WAREHOUSE', 'LOGISTICS'].some((role) =>
-        hasRole(user, role as 'ADMIN'),
-      ),
-    },
     { to: '/packages', label: 'Packages', icon: 'packages', visible: true },
     { to: '/shipment-packages', label: 'Containers', icon: 'shipment-packages', visible: true },
     {
@@ -138,6 +150,15 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
     { to: '/stock', label: 'Stock', icon: 'stock', visible: isWarehouse },
     // The component requests placed with suppliers (`GET /components/requests`): ADMIN and WAREHOUSE.
     { to: '/requests', label: 'Request Components', icon: 'requests', visible: isWarehouse },
+    // Every status change of every order (`GET /orders/history`): the roles that may read any order.
+    {
+      to: '/order-history',
+      label: 'Order History',
+      icon: 'order-history',
+      visible: ['ADMIN', 'MANAGER', 'WAREHOUSE', 'LOGISTICS'].some((role) =>
+        hasRole(user, role as 'ADMIN'),
+      ),
+    },
     // The supplier's own requests (`GET /supplier/my-requests`). Not for the admin: the list is of the logged-in user, theirs is empty.
     {
       to: '/my-requests',
@@ -162,34 +183,40 @@ export function sidebarLinks(user: UserDto): SidebarLink[] {
       restricted: true,
       visible: isAdmin,
     },
+    // The product categories (`GET /categories`): ADMIN only.
+    {
+      to: '/categories',
+      label: 'Categories',
+      icon: 'categories',
+      restricted: true,
+      visible: isAdmin,
+    },
   ]
 
   const carrierOnly = isCarrierOnly(user)
   const customerOnly = isCustomerOnly(user)
   const supplierOnly = isSupplierOnly(user)
+  const logisticsOnly = isLogisticsOnly(user)
   return links
     .filter((link) => link.visible)
     .filter((link) => !carrierOnly || link.to === '/shipments')
     .filter((link) => !customerOnly || link.to === '/orders/create' || link.to === '/orders')
     .filter((link) => !supplierOnly || link.to === '/my-requests')
+    .filter((link) => !logisticsOnly || !isHiddenFromLogistics(link.to))
     .map(({ visible: _visible, ...link }) => link)
 }
 
-/** Where somebody lands after the login, when it is not a page they asked for: a carrier's own list, else the start page (a customer's too). */
-export function homePathFor(user: UserDto): '/' | '/shipments' {
-  if (isCarrierOnly(user)) return '/shipments'
-  return '/'
-}
-
 /**
- * Whether `pathname` is a page the user's navigation leads to. Only a customer is held to it: they are sent
- * to the start page from anything else, instead of landing on a page the backend answers with a 403. The
- * details of one order (`/orders/1042`) belong to Orders; `/orders/new` is the manager's list, not theirs.
+ * Whether the user may open `pathname`. A customer and a supplier are held to their own pages, a planner of
+ * shipments is kept from the order and packing pages; anybody else may open everything. Somebody who may not is
+ * sent to the start page. The details of one order (`/orders/1042`) belong to Orders; `/orders/new` is the
+ * manager's list, not a customer's.
  */
 export function mayOpen(user: UserDto, pathname: string): boolean {
   const path = pathname.replace(/\/+$/, '') || '/'
   // A supplier alone has the start page and their requests; the rest would answer 403.
   if (isSupplierOnly(user)) return path === '/' || path === '/my-requests'
+  if (isLogisticsOnly(user)) return !isHiddenFromLogistics(path)
   if (!isCustomerOnly(user)) return true
   if (path === '/' || path === '/orders' || path === '/orders/create') return true
   return path.startsWith('/orders/') && path !== '/orders/new' && !path.startsWith('/orders/new/')

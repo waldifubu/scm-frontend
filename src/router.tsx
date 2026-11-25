@@ -7,7 +7,7 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import { meQueryOptions } from './features/auth/auth'
-import { homePathFor, mayOpen } from './layout/navigation'
+import { mayOpen } from './layout/navigation'
 import { queryClient } from './queryClient'
 import { AuthedLayout } from './layout/AuthedLayout'
 import { HomePage } from './features/home/HomePage'
@@ -33,6 +33,7 @@ import { UsersPage } from './features/users/UsersPage'
 import { OrderHistoryPage } from './features/orders/OrderHistoryPage'
 import { SupplierRulesPage } from './features/rules/SupplierRulesPage'
 import { DistributorRulesPage } from './features/rules/DistributorRulesPage'
+import { CategoriesPage } from './features/categories/CategoriesPage'
 import { StorehousesPage } from './features/stock/StorehousesPage'
 import { ComponentsPage } from './features/components/ComponentsPage'
 import { ComponentDetailsPage } from './features/components/ComponentDetailsPage'
@@ -100,8 +101,8 @@ const authedRoute = createRoute({
         search: location.href === '/' ? {} : { redirect: location.href },
       })
     }
-    // A customer has two pages; any other address, typed or followed, leads to their orders.
-    if (!mayOpen(user, location.pathname)) throw redirect({ to: homePathFor(user) })
+    // A customer has two pages; any other address, typed or followed, leads to the start page.
+    if (!mayOpen(user, location.pathname)) throw redirect({ to: '/' })
   },
   component: AuthedLayout,
 })
@@ -109,12 +110,6 @@ const authedRoute = createRoute({
 const indexRoute = createRoute({
   getParentRoute: () => authedRoute,
   path: '/',
-  // A carrier works in one place, and has no start page worth landing on: straight to their shipments.
-  beforeLoad: async ({ context }) => {
-    const user = await context.queryClient.ensureQueryData(meQueryOptions)
-    const home = user ? homePathFor(user) : '/'
-    if (home !== '/') throw redirect({ to: home })
-  },
   component: HomePage,
 })
 
@@ -213,6 +208,12 @@ const distributorRulesRoute = createRoute({
   getParentRoute: () => authedRoute,
   path: '/distributor-rules',
   component: DistributorRulesPage,
+})
+
+const categoriesRoute = createRoute({
+  getParentRoute: () => authedRoute,
+  path: '/categories',
+  component: CategoriesPage,
 })
 
 const stockOverviewRoute = createRoute({
@@ -323,6 +324,7 @@ const routeTree = rootRoute.addChildren([
     usersRoute,
     supplierRulesRoute,
     distributorRulesRoute,
+    categoriesRoute,
     requestsRoute,
     myRequestsRoute,
     stockOverviewRoute,

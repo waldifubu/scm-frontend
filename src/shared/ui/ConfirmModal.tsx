@@ -5,6 +5,8 @@ interface Props {
   children: ReactNode
   /** The button that goes ahead. */
   confirmLabel: string
+  /** The button that backs out - to be renamed where "Cancel" would read like the action itself. */
+  cancelLabel?: string
   /** Red where what follows cannot simply be undone by looking again. */
   danger?: boolean
   /** While the call is under way: neither button nor Escape closes the window, so its answer is not hidden. */
@@ -24,6 +26,7 @@ export function ConfirmModal({
   title,
   children,
   confirmLabel,
+  cancelLabel = 'Cancel',
   danger = false,
   busy = false,
   confirmDisabled = false,
@@ -42,8 +45,10 @@ export function ConfirmModal({
 
   return (
     <>
+      {/* A window of its own: it does not take over the alignment or the no-wrap of the table cell it was opened
+          from. */}
       <div
-        className="modal d-block"
+        className="modal d-block text-start text-wrap"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -74,7 +79,7 @@ export function ConfirmModal({
                 onClick={onCancel}
                 disabled={busy}
               >
-                Cancel
+                {cancelLabel}
               </button>
               <button
                 type="button"

@@ -6,6 +6,7 @@ import { productsQueryOptions } from '../products/products'
 import { NavIcon } from '../../layout/NavIcon'
 import { PageTitle } from '../../layout/PageTitle'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /** Lists the products with a quantity field each; whatever has a quantity goes into the order. */
 export function CreateOrderPage() {
@@ -43,7 +44,7 @@ export function CreateOrderPage() {
         </PageTitle>
       </div>
 
-      {isPending && <p className="p-3 mb-0">Loading products…</p>}
+      {isPending && <LoadingBar label="Loading products…" />}
       {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
       {data && (
         <div className="table-responsive">

@@ -16,6 +16,7 @@ import { Chevron } from '../../shared/ui/Chevron'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { SortableHeader } from '../../shared/ui/SortableHeader'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * The shipment to make of the chosen containers (`POST /shipments`). The customer is not asked: the backend reads it
@@ -213,7 +214,7 @@ function AddToShipmentForm({
                 </p>
               )}
               {open && shipments.isPending && (
-                <p className="mb-0 text-body-secondary">Loading shipments…</p>
+                <LoadingBar label="Loading shipments…" className="" />
               )}
               {shipments.error && <p className="mb-0 text-danger">{shipments.error.message}</p>}
               {shipments.data && rows.length === 0 && (
@@ -353,7 +354,7 @@ export function ShippableItemsPage() {
         <div className="card-body">
           <PageTitle icon="shippable-items">Shippable Items</PageTitle>
         </div>
-        {isPending && <p className="p-3 mb-0">Loading containers…</p>}
+        {isPending && <LoadingBar label="Loading containers…" />}
         {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
         {data && data.content.length === 0 && (
           <p className="p-3 mb-0 text-body-secondary">Nothing is ready for shipment.</p>

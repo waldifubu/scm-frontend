@@ -7,6 +7,7 @@ import { nextSort, type TableSort } from '../../shared/lib/tableSort'
 import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { SortableHeader } from '../../shared/ui/SortableHeader'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * What the warehouse holds, an article to a row with every storehouse added up (`GET /stock/inventory`).
@@ -23,7 +24,7 @@ export function StockInventoryCard() {
       <div className="card-body">
         <PageTitle icon="stock">Stock</PageTitle>
       </div>
-      {isPending && <p className="p-3 mb-0">Loading stock…</p>}
+      {isPending && <LoadingBar label="Loading stock…" />}
       {error && <p className="p-3 mb-0 text-danger">{error.message}</p>}
       {data && data.content.length === 0 && (
         <p className="p-3 mb-0 text-body-secondary">Nothing in stock.</p>

@@ -5,6 +5,7 @@ import { orderShipmentsQueryOptions } from './shipmentsOfOrder'
 import { statusBadgeClass } from '../shipments/shipments'
 import { hasRole } from '../../shared/api/types'
 import { formatMoment } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * The shipments an order travels in: status, tracking number, address, when it left and arrived, and which of
@@ -21,7 +22,7 @@ export function OrderShipments({ orderNumber }: { orderNumber: string }) {
   return (
     <>
       <h4 className="h6 mt-4">Shipments</h4>
-      {isPending && <p className="mb-0">Loading shipments…</p>}
+      {isPending && <LoadingBar label="Loading shipments…" className="" />}
       {error && <p className="mb-0 text-danger">{error.message}</p>}
       {shipments && shipments.length === 0 && (
         <p className="text-body-secondary mb-0">No shipment yet.</p>

@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
-import { componentSku, fetchComponentByArticle, lookupMessage } from './components'
+import { componentSku, fetchComponentByExternalId, lookupMessage } from './components'
 
 /** The magnifying glass of the Find button. */
 function SearchIcon() {
@@ -24,14 +24,14 @@ function SearchIcon() {
 }
 
 /**
- * Finds one component by its external ID (`GET /components/article/{articleNo}`, which matches `externalId`) and opens its page. Nothing
+ * Finds one component by its external ID (`GET /components/external/{externalId}`) and opens its page. Nothing
  * found is told in words - the backend answers 404 - and a blank field asks nothing.
  */
-export function ArticleLookup() {
+export function ExternalIdLookup() {
   const navigate = useNavigate()
   const [externalId, setExternalId] = useState('')
   const find = useMutation({
-    mutationFn: (value: string) => fetchComponentByArticle(value),
+    mutationFn: (value: string) => fetchComponentByExternalId(value),
     onSuccess: (component) =>
       navigate({ to: '/components/$sku', params: { sku: componentSku(component) } }),
   })

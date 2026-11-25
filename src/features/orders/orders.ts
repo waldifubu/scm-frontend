@@ -45,7 +45,7 @@ export const DEFAULT_ORDER_STATUS: OrderStatus = 'CREATED'
  * Words the backend takes for `status` that are not a status but several: every order, or every order but the
  * completed ones - one page of them, not one request per status.
  */
-export const ORDER_GROUPS = ['NOT_COMPLETED', 'ALL'] as const
+export const ORDER_GROUPS = ['ALL', 'NOT_COMPLETED'] as const
 
 export type OrderGroup = (typeof ORDER_GROUPS)[number]
 
@@ -71,24 +71,46 @@ export function orderFilterLabel(filter: OrderFilter): string {
 }
 
 /**
- * What the list starts on. A manager works from the orders that are still open, so they get those; everybody
- * else starts on the backend's own default, the new orders.
+ * What the list starts on. An administrator sees every order. A manager works from the orders that are still
+ * open, so they get those; everybody else starts on the backend's own default, the new orders.
  */
 export function defaultOrderFilter(user: UserDto | undefined): OrderFilter {
+  if (user && hasRole(user, 'ADMIN')) return 'ALL'
   return user && hasRole(user, 'MANAGER') ? 'NOT_COMPLETED' : DEFAULT_ORDER_STATUS
 }
 
+/** The column `GET /orders` sorts by (the backend's own names) and the direction. */
+export interface OrderListSort {
+  sort: string
+  order: 'ASC' | 'DESC'
+}
+
+/** How a page is cut and ordered; what is left out is the backend's own default (25 rows, by id). */
+export interface OrderListOptions {
+  size?: number
+  sort?: OrderListSort
+}
+
 /** `GET /orders` for one status or group (the backend's own default, `CREATED`, when none is given) and page. */
-export const ordersPath = (page = 0, status?: OrderFilter) =>
-  withPage(status ? `/orders?status=${encodeURIComponent(status)}` : '/orders', page)
+export const ordersPath = (page = 0, status?: OrderFilter, options: OrderListOptions = {}) => {
+  const query = new URLSearchParams()
+  if (status) query.set('status', status)
+  if (options.size !== undefined) query.set('size', String(options.size))
+  if (options.sort) {
+    query.set('sort', options.sort.sort)
+    query.set('order', options.sort.order)
+  }
+  const text = query.toString()
+  return withPage(text ? `/orders?${text}` : '/orders', page)
+}
 
-export const fetchOrders = (page = 0, status?: OrderFilter) =>
-  fetchOrderPage(ordersPath(page, status))
+export const fetchOrders = (page = 0, status?: OrderFilter, options?: OrderListOptions) =>
+  fetchOrderPage(ordersPath(page, status, options))
 
-export const ordersQueryOptions = (page = 0, status?: OrderFilter) =>
+export const ordersQueryOptions = (page = 0, status?: OrderFilter, options?: OrderListOptions) =>
   queryOptions({
-    queryKey: ['orders', 'page', status ?? DEFAULT_ORDER_STATUS, page] as const,
-    queryFn: () => fetchOrders(page, status),
+    queryKey: ['orders', 'page', status ?? DEFAULT_ORDER_STATUS, page, options ?? {}] as const,
+    queryFn: () => fetchOrders(page, status, options),
   })
 
 /** `GET /orders/{orderNumber}`. */

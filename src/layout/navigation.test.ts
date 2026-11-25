@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vite-plus/test'
 import type { UserDto } from '../shared/api/types'
 import {
-  homePathFor,
   isCarrierOnly,
   isCustomerOnly,
+  isLogisticsOnly,
   isSupplierOnly,
   mayOpen,
   sidebarLinks,
@@ -53,7 +53,6 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Picking orders',
       'Order items',
       'Packable items',
-      'Order History',
       'Packages',
       'Containers',
       'Storehouses',
@@ -61,6 +60,7 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Components',
       'Stock',
       'Request Components',
+      'Order History',
     ])
   })
 
@@ -82,7 +82,6 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Picking orders',
       'Order items',
       'Packable items',
-      'Order History',
       'Packages',
       'Containers',
       'Shippable Items',
@@ -92,14 +91,16 @@ describe('sidebarLinks for everybody else is what it was', () => {
       'Components',
       'Stock',
       'Request Components',
+      'Order History',
       'Users',
       'Supplier Rules',
       'Distributor Rules',
+      'Categories',
     ])
   })
 
-  it('Request Components is the last entry, for the warehouse and the admin only', () => {
-    expect(labels('WAREHOUSE').at(-1)).toBe('Request Components')
+  it('Request Components stands right above Order History, for the warehouse and the admin only', () => {
+    expect(labels('WAREHOUSE').slice(-2)).toEqual(['Request Components', 'Order History'])
     expect(labels('ADMIN')).toContain('Request Components')
     for (const role of ['MANAGER', 'LOGISTICS', 'SUPPLIER', 'CUSTOMER', 'DISTRIBUTOR']) {
       expect(labels(role)).not.toContain('Request Components')
@@ -137,12 +138,17 @@ describe('sidebarLinks for everybody else is what it was', () => {
   })
 
   it('the restricted entries are for the admin alone, and the last ones', () => {
-    expect(labels('ADMIN').slice(-3)).toEqual(['Users', 'Supplier Rules', 'Distributor Rules'])
+    expect(labels('ADMIN').slice(-4)).toEqual([
+      'Users',
+      'Supplier Rules',
+      'Distributor Rules',
+      'Categories',
+    ])
     expect(
       sidebarLinks(user('ADMIN'))
         .filter((link) => link.restricted)
         .map((link) => link.label),
-    ).toEqual(['Users', 'Supplier Rules', 'Distributor Rules'])
+    ).toEqual(['Users', 'Supplier Rules', 'Distributor Rules', 'Categories'])
     for (const role of [
       'MANAGER',
       'WAREHOUSE',
@@ -211,20 +217,6 @@ describe('isSupplierOnly', () => {
   })
 })
 
-describe('homePathFor', () => {
-  it('sends a carrier to their shipments and everybody else to the start page', () => {
-    expect(homePathFor(user('DISTRIBUTOR'))).toBe('/shipments')
-    expect(homePathFor(user('DISTRIBUTOR', 'WAREHOUSE'))).toBe('/')
-    expect(homePathFor(user('ADMIN'))).toBe('/')
-    expect(homePathFor(user('CUSTOMER'))).toBe('/')
-    expect(homePathFor(user('CUSTOMER', 'MANAGER'))).toBe('/')
-  })
-
-  it('sends a supplier to the start page like everybody else', () => {
-    expect(homePathFor(user('SUPPLIER'))).toBe('/')
-  })
-})
-
 describe('mayOpen for a supplier', () => {
   it('lets a supplier alone open the start page and their requests, and nothing else', () => {
     expect(mayOpen(user('SUPPLIER'), '/')).toBe(true)
@@ -241,6 +233,10 @@ describe('mayOpen for a supplier', () => {
 })
 
 describe('mayOpen', () => {
+  it('lets a carrier open the start page', () => {
+    expect(mayOpen(user('DISTRIBUTOR'), '/')).toBe(true)
+  })
+
   it('lets a customer open the start page, their orders, the order form and one order', () => {
     for (const path of ['/', '/orders', '/orders/', '/orders/create', '/orders/1042']) {
       expect(mayOpen(user('CUSTOMER'), path)).toBe(true)
@@ -264,5 +260,50 @@ describe('mayOpen', () => {
     for (const roles of [['ADMIN'], ['MANAGER'], ['DISTRIBUTOR'], ['CUSTOMER', 'WAREHOUSE'], []]) {
       expect(mayOpen(user(...roles), '/storehouses')).toBe(true)
     }
+  })
+})
+
+describe('a planner of shipments', () => {
+  it('sees what the backend lets it read: shipping, catalogue and order history', () => {
+    expect(labels('LOGISTICS')).toEqual([
+      'Containers',
+      'Shippable Items',
+      'Shipments',
+      'Products',
+      'Components',
+      'Order History',
+    ])
+  })
+
+  it('may not open the hidden pages by their address either', () => {
+    for (const path of [
+      '/orders',
+      '/orders/new',
+      '/orders/new/1042',
+      '/orders/create',
+      '/order-items',
+      '/order-items/packable',
+      '/packages',
+      '/packages/7',
+    ]) {
+      expect(mayOpen(user('LOGISTICS'), path)).toBe(false)
+    }
+    for (const path of [
+      '/',
+      '/orders/1042',
+      '/order-history',
+      '/products',
+      '/components',
+      '/shipment-packages',
+      '/shipments',
+    ]) {
+      expect(mayOpen(user('LOGISTICS'), path)).toBe(true)
+    }
+  })
+
+  it('sees the pages of another role as well', () => {
+    expect(isLogisticsOnly(user('LOGISTICS', 'WAREHOUSE'))).toBe(false)
+    expect(labels('LOGISTICS', 'WAREHOUSE')).toContain('Packages')
+    expect(mayOpen(user('LOGISTICS', 'ADMIN'), '/orders')).toBe(true)
   })
 })

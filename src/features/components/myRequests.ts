@@ -15,7 +15,6 @@ export interface MyRequestRow {
     manufacturer: string | null
     name: string | null
     sku: string | null
-    articleNo: string | null
   } | null
 }
 

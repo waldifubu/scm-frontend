@@ -9,6 +9,8 @@ import {
   formatNumber,
 } from '../../shared/lib/format'
 import { EntityLinkAnchor } from '../../shared/ui/EntityLinkAnchor'
+import { FulfillmentStatusBadge } from '../packing/FulfillmentStatusBadge'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/shippable-items/$packageId')
 
@@ -88,7 +90,13 @@ function ShippableDetails({ row, onClose }: { row: ShippablePackage; onClose: ()
                     </td>
                     <td className="text-end">{item.quantity ?? ''}</td>
                     <td className="text-end">{item.totalQuantity ?? ''}</td>
-                    <td>{item.fulfillmentStatus ?? ''}</td>
+                    <td>
+                      {item.fulfillmentStatus ? (
+                        <FulfillmentStatusBadge status={item.fulfillmentStatus} />
+                      ) : (
+                        ''
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -110,7 +118,7 @@ export function ShippableDetailsPage() {
   const { data: row, isPending, error } = useQuery(shippableByIdQueryOptions(packageId))
   const close = () => navigate({ to: '/shippable-items' })
 
-  if (isPending) return <p className="mt-4 mb-0">Loading container…</p>
+  if (isPending) return <LoadingBar label="Loading container…" className="mt-4" />
   if (error) return <p className="mt-4 mb-0 text-danger">{error.message}</p>
   if (!row) {
     return <p className="mt-4 mb-0 text-body-secondary">There is no container {packageId}.</p>

@@ -26,6 +26,8 @@ export const DEFAULT_PACKAGE_STATUS = 'PACKED'
 export interface PackageFilter {
   /** The fulfillment status of the item's order line; none lists every item. */
   fulfillmentStatus?: string
+  /** Only the items of this order. */
+  orderNo?: string
   page?: number
   size?: number
   sort?: string
@@ -46,20 +48,37 @@ export const packagesQueryOptions = (filter: PackageFilter = {}) =>
     queryFn: () => fetchPackages(filter),
   })
 
-/** `GET /lonely-packages` for a page and a fulfillment status (none: every loose item). */
-export const lonelyPackagesPath = (page = 0, fulfillmentStatus?: string) =>
-  withPage(
-    fulfillmentStatus
-      ? `/lonely-packages?fulfillmentStatus=${encodeURIComponent(fulfillmentStatus)}`
-      : '/lonely-packages',
-    page,
-  )
+/** `GET /lonely-packages` for a page, a fulfillment status (none: every loose item), a number of rows and an order. */
+export function lonelyPackagesPath(
+  page = 0,
+  fulfillmentStatus?: string,
+  size?: number,
+  orderNo?: string,
+) {
+  const params = new URLSearchParams()
+  if (fulfillmentStatus) params.set('fulfillmentStatus', fulfillmentStatus)
+  if (size !== undefined) params.set('size', String(size))
+  if (orderNo) params.set('orderNo', orderNo)
+  return withPage(params.size ? `/lonely-packages?${params}` : '/lonely-packages', page)
+}
 
 /** `GET /lonely-packages`: the same package listing, of the packages without siblings. */
-export const lonelyPackagesQueryOptions = (page = 0, fulfillmentStatus?: string) =>
+export const lonelyPackagesQueryOptions = (
+  page = 0,
+  fulfillmentStatus?: string,
+  size?: number,
+  orderNo?: string,
+) =>
   queryOptions({
-    queryKey: ['packages', 'lonely', fulfillmentStatus ?? '', page] as unknown[],
-    queryFn: () => fetchPackagePage(lonelyPackagesPath(page, fulfillmentStatus)),
+    queryKey: [
+      'packages',
+      'lonely',
+      fulfillmentStatus ?? '',
+      page,
+      size ?? null,
+      orderNo ?? '',
+    ] as unknown[],
+    queryFn: () => fetchPackagePage(lonelyPackagesPath(page, fulfillmentStatus, size, orderNo)),
   })
 
 /**

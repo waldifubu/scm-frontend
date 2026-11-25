@@ -14,6 +14,7 @@ export function DeleteWithConfirm({
   onDeleted,
   label = 'Delete',
   icon,
+  small = true,
 }: {
   title: string
   children: ReactNode
@@ -22,6 +23,8 @@ export function DeleteWithConfirm({
   label?: string
   /** Shown in front of the label on the button (not in the window). */
   icon?: ReactNode
+  /** The size of the button; off next to buttons of the normal size. */
+  small?: boolean
 }) {
   const [asking, setAsking] = useState(false)
   const remove = useMutation({
@@ -40,7 +43,7 @@ export function DeleteWithConfirm({
     <>
       <button
         type="button"
-        className={`btn btn-outline-danger${icon ? ' d-inline-flex align-items-center gap-2' : ''} btn-sm`}
+        className={`btn btn-outline-danger${icon ? ' d-inline-flex align-items-center gap-2' : ''}${small ? ' btn-sm' : ''}`}
         onClick={() => setAsking(true)}
       >
         {icon}

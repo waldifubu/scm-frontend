@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { isSoldOut, stockBySkuQueryOptions, stockTotals } from './stock'
 import { formatMoment } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 /**
  * Where one article is stored and how much of it, a row per storehouse. Only the warehouse and the
@@ -14,7 +15,7 @@ export function ProductStockCard({ sku }: { sku: string }) {
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5">Stock</h3>
-        {isPending && <p className="mb-0">Loading stock…</p>}
+        {isPending && <LoadingBar label="Loading stock…" className="" />}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
         {rows && rows.length === 0 && (
           <p className="mb-0 text-body-secondary">Not in stock in any storehouse.</p>

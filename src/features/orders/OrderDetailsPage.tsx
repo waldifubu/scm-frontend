@@ -11,7 +11,9 @@ import { OrderDecisions } from './OrderDecisionButtons'
 import { decisionsFor } from './orderDecisions'
 import { OrderLinesTable } from './OrderLinesTable'
 import { OrderShipments } from './OrderShipments'
+import { OrderStatusBadge } from './OrderStatusBadge'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 // Mermaid is large: the workflow diagram is fetched when the first order is opened, not with the page.
 const OrderWorkflow = lazy(() =>
@@ -36,8 +38,11 @@ export function OrderDetailsPage() {
       )}
       <div className="card shadow-sm mt-4">
         <div className="card-body">
-          <h3 className="h5">Order {orderNumber}</h3>
-          {isPending && <p className="mb-0">Loading details…</p>}
+          <h3 className="h5 d-flex align-items-center gap-2">
+            Order {orderNumber}
+            {order && <OrderStatusBadge status={order.status} />}
+          </h3>
+          {isPending && <LoadingBar label="Loading details…" className="" />}
           {error && <p className="mb-0 text-danger">{error.message}</p>}
           {order && <OrderFields order={order} orderNumber={orderNumber} />}
         </div>
@@ -56,7 +61,8 @@ export function OrderDetailsPage() {
 }
 
 function OrderFields({ order, orderNumber }: { order: OrderDto; orderNumber: string }) {
-  const { items, ...fields } = order
+  // The status is the badge beside the heading, not a field of this list.
+  const { items, status, ...fields } = order
   const rows = Array.isArray(items) ? (items as OrderDto[]) : []
 
   return (
@@ -75,7 +81,7 @@ function OrderFields({ order, orderNumber }: { order: OrderDto; orderNumber: str
       ) : (
         <OrderLinesTable rows={rows} />
       )}
-      {showsShipments(order.status) && <OrderShipments orderNumber={orderNumber} />}
+      {showsShipments(status) && <OrderShipments orderNumber={orderNumber} />}
     </>
   )
 }

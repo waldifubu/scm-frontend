@@ -1,17 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
   createPackage,
+  mayPack,
   packableItemsQueryOptions,
   packWholeOrder,
+  wholeOrderHint,
   wholeOrderLines,
   type PackableItemFilter,
   type PackingLine,
 } from './orderItems'
 import { ordersQueryOptions } from '../orders/orders'
-import { OrderItemsTable } from './OrderItemsTable'
+import { meQueryOptions } from '../auth/auth'
+import { PackableItemsTable } from './PackableItemsTable'
+import { PACKABLE_SORT_KEYS } from './packableColumns'
+import { listSort, useServerTableState } from '../../shared/lib/serverTable'
 import { PageTitle } from '../../layout/PageTitle'
-import { cell } from '../../shared/lib/format'
 import { ConfirmModal } from '../../shared/ui/ConfirmModal'
 
 /** The order number of an order or of an item, whether it sits on the item itself or on a nested `order`. */
@@ -26,11 +30,15 @@ function orderNoOf(row: Record<string, unknown>): string | undefined {
 
 export function PackableItemsPage() {
   const [orderNo, setOrderNo] = useState('')
-  const [page, setPage] = useState('')
-  const [sort, setSort] = useState<PackableItemFilter['sort']>('id')
-  const [order, setOrder] = useState<PackableItemFilter['order'] | ''>('')
+  // The list starts by the item id, as it did before the heads could be clicked.
+  const { pagination, sorting, setPagination, setSorting, firstPage } = useServerTableState([
+    { id: 'orderItemId', desc: false },
+  ])
+  const sorted = listSort(sorting, PACKABLE_SORT_KEYS)
 
   const { data: orders } = useQuery(ordersQueryOptions())
+  const { data: user } = useQuery(meQueryOptions)
+  const packs = mayPack(user)
   const { data: allPackable } = useQuery(packableItemsQueryOptions({ sort: 'id' }))
   const orderNumbers = [
     ...new Set(
@@ -42,11 +50,16 @@ export function PackableItemsPage() {
 
   const filter: PackableItemFilter = {
     orderNo: orderNo.trim() || undefined,
-    page: page === '' ? undefined : Number(page),
-    sort,
-    order: order || undefined,
+    page: pagination.pageIndex,
+    size: pagination.pageSize,
+    sort: sorted && PACKABLE_SORT_KEYS[sorting[0]!.id],
+    order: sorted?.order,
   }
-  const { data, isPending, error } = useQuery(packableItemsQueryOptions(filter))
+  const { data, isPending, isFetching, error, isPlaceholderData } = useQuery({
+    ...packableItemsQueryOptions(filter),
+    // The old page stays while the next one loads, so a click on a head does not empty the table.
+    placeholderData: keepPreviousData,
+  })
 
   const queryClient = useQueryClient()
 
@@ -69,14 +82,16 @@ export function PackableItemsPage() {
   // The whole order is the lines the list shows for its number - only trustworthy when they are all on this page.
   const [askingWhole, setAskingWhole] = useState(false)
   const wholeNo = /^\d+$/.test(orderNo.trim()) ? Number(orderNo.trim()) : null
-  const wholeLines = wholeNo === null || !data ? [] : wholeOrderLines(data.content)
+  // While the next list loads the rows shown are the previous one's - they are not this order's lines.
+  const loaded = isPlaceholderData ? undefined : data
+  const wholeLines = wholeNo === null || !loaded ? [] : wholeOrderLines(loaded.content)
   const wholeProblem =
     wholeNo === null
       ? 'Enter an order number to pack that whole order.'
-      : !data
-        ? null
-        : data.total > data.content.length
-          ? 'The order has more packable lines than one page - narrow it down or pack by quantity.'
+      : !loaded
+        ? 'Loading the lines of the order…'
+        : loaded.total > loaded.content.length
+          ? 'The order has more packable lines than one page shows - raise the rows per page or pack by quantity.'
           : wholeLines.length === 0
             ? 'Nothing is left to pack for this order.'
             : null
@@ -105,38 +120,47 @@ export function PackableItemsPage() {
             placeholder="Order number"
             list="packable-order-numbers"
             value={orderNo}
-            onChange={(event) => setOrderNo(event.target.value)}
+            onChange={(event) => {
+              setOrderNo(event.target.value)
+              // The matches start at their first page.
+              firstPage()
+            }}
           />
           <datalist id="packable-order-numbers">
             {orderNumbers.map((number) => (
               <option key={number} value={number} />
             ))}
           </datalist>
-          <input
-            type="number"
-            min={0}
-            className="form-control form-control-sm w-auto"
-            style={{ width: '6rem' }}
-            placeholder="page"
-            aria-label="Page"
-            value={page}
-            onChange={(event) => setPage(event.target.value)}
-          />
           <select
             className="form-select form-select-sm w-auto"
             aria-label="Sort field"
-            value={sort}
-            onChange={(event) => setSort(event.target.value as PackableItemFilter['sort'])}
+            // The same sorting the heads of the table set; empty is the backend's own order.
+            value={sorted?.sort ?? ''}
+            onChange={(event) => {
+              const column = Object.keys(PACKABLE_SORT_KEYS).find(
+                (key) => PACKABLE_SORT_KEYS[key] === event.target.value,
+              )
+              setSorting(column ? [{ id: column, desc: sorting[0]?.desc ?? false }] : [])
+            }}
           >
-            <option value="id">id</option>
-            <option value="quantity">quantity</option>
-            <option value="updatedAt">updatedAt</option>
+            <option value="">Sort</option>
+            {Object.values(PACKABLE_SORT_KEYS).map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
           </select>
           <select
             className="form-select form-select-sm w-auto"
             aria-label="Sort direction"
-            value={order}
-            onChange={(event) => setOrder(event.target.value as PackableItemFilter['order'] | '')}
+            value={sorted?.order ?? ''}
+            onChange={(event) =>
+              setSorting(
+                event.target.value === ''
+                  ? []
+                  : [{ id: sorting[0]?.id ?? 'orderItemId', desc: event.target.value === 'DESC' }],
+              )
+            }
           >
             <option value="">Order</option>
             <option value="ASC">ASC</option>
@@ -144,78 +168,82 @@ export function PackableItemsPage() {
           </select>
         </div>
       </div>
-      <OrderItemsTable
+      <PackableItemsTable
         data={data}
         isPending={isPending}
+        isFetching={isFetching}
         error={error}
-        itemType="packable Items"
-        onPage={(next) => setPage(String(next))}
-        extraColumn={{
-          header: 'pack qty',
-          render: (item) => {
-            const rawId = item.orderItemId ?? item.id
-            if (rawId === undefined || rawId === null) return null
-            const id = cell(rawId)
-            const remaining = Number(item.remaining)
-            return (
-              <input
-                type="number"
-                min={0}
-                max={Number.isFinite(remaining) ? remaining : undefined}
-                className="form-control form-control-sm"
-                style={{ width: '4.5rem' }}
-                title="Only packages with same order number are valid"
-                aria-label={`Quantity to pack for item ${id}`}
-                value={quantities[id] ?? ''}
-                onChange={(event) => setQuantities({ ...quantities, [id]: event.target.value })}
-              />
-            )
-          },
+        pagination={pagination}
+        sorting={sorting}
+        onPagination={setPagination}
+        onSorting={setSorting}
+        quantities={quantities}
+        // A click on a row searches for its order, as if its number had been typed.
+        onRow={(item) => {
+          const number = orderNoOf(item)
+          if (number === undefined || number === orderNo) return
+          setOrderNo(number)
+          firstPage()
         }}
+        onQuantity={
+          packs ? (id, quantity) => setQuantities({ ...quantities, [id]: quantity }) : undefined
+        }
       />
-      <div className="card-body d-flex flex-wrap gap-3 align-items-center">
-        <button
-          type="button"
-          className="btn btn-success"
-          disabled={lines.length === 0 || create.isPending}
-          onClick={() => create.mutate(lines)}
-        >
-          Create Package
-        </button>
-        <button
-          type="button"
-          className="btn btn-outline-success"
-          disabled={wholeProblem !== null || wholeNo === null || packWhole.isPending}
-          title={wholeProblem ?? undefined}
-          onClick={() => setAskingWhole(true)}
-        >
-          Pack whole order
-        </button>
-        {askingWhole && (
-          <ConfirmModal
-            title="Pack whole order"
-            confirmLabel="Pack whole order"
-            busy={packWhole.isPending}
-            onCancel={() => setAskingWhole(false)}
-            onConfirm={() => {
-              setPackageNotice(null)
-              packWhole.mutate(undefined, { onSettled: () => setAskingWhole(false) })
-            }}
+      {/* Packing is for the warehouse and the admin; anybody else reads the list. */}
+      {packs && (
+        <div className="card-body d-flex flex-wrap gap-3 align-items-center">
+          <button
+            type="button"
+            className="btn btn-success"
+            disabled={lines.length === 0 || create.isPending}
+            onClick={() => create.mutate(lines)}
           >
-            Pack everything that is left of order {wholeNo} - {wholeLines.length} line
-            {wholeLines.length === 1 ? '' : 's'} - into one new package?
-          </ConfirmModal>
-        )}
-        <span
-          className={
-            packageNotice ? (packageNotice.failed ? 'text-danger' : 'text-success') : undefined
-          }
-          style={{ minHeight: '1.5rem' }}
-          role="status"
-        >
-          {packageNotice?.text}
-        </span>
-      </div>
+            Create Package
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline-success"
+            disabled={wholeProblem !== null || wholeNo === null || packWhole.isPending}
+            onClick={() => setAskingWhole(true)}
+          >
+            Pack whole order
+          </button>
+          {askingWhole && (
+            <ConfirmModal
+              title="Pack whole order"
+              confirmLabel="Pack whole order"
+              busy={packWhole.isPending}
+              onCancel={() => setAskingWhole(false)}
+              onConfirm={() => {
+                setPackageNotice(null)
+                packWhole.mutate(undefined, { onSettled: () => setAskingWhole(false) })
+              }}
+            >
+              Pack everything that is left of order {wholeNo} - {wholeLines.length} line
+              {wholeLines.length === 1 ? '' : 's'} - into one new package?
+            </ConfirmModal>
+          )}
+          <span
+            className={
+              packageNotice ? (packageNotice.failed ? 'text-danger' : 'text-success') : undefined
+            }
+            style={{ minHeight: '1.5rem' }}
+            role="status"
+          >
+            {packageNotice?.text}
+          </span>
+          {/* Under the buttons, in a line of its own. */}
+          <div className="w-100 small text-body-secondary">
+            {wholeOrderHint(wholeProblem).map((help) => (
+              <section key={help.title}>
+                <h4 className="h6 fw-bold mb-1">{help.title}</h4>
+                <p className="mb-2">{help.text}</p>
+                {help.problem && <p className="mb-0 text-body-emphasis">{help.problem}</p>}
+              </section>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { api } from '../../shared/api/client'
+import { hasRole, type UserDto } from '../../shared/api/types'
 
 /** An order item as the backend sends it. Its fields are not typed yet, so the table reads them as they come. */
 export type OrderItemDto = Record<string, unknown>
@@ -28,17 +29,48 @@ export type OrderItemStatus = (typeof ORDER_ITEM_STATUSES)[number]
 /** What `status` takes besides a fulfillment status: every line. Without a status the backend answers PICKED, the packing work list. */
 export const ALL_STATUSES = 'ALL'
 
+/** Every line that still has work ahead of it: all but `READY_FOR_DISPATCH` and `CANCELLED`. */
+export const NOT_COMPLETED = 'NOT_COMPLETED'
+
+/** What the order items list can be asked for: one status, or a group of them. */
+export type OrderItemChoice = OrderItemStatus | typeof ALL_STATUSES | typeof NOT_COMPLETED
+
+/**
+ * The choices of the status filter for this user: the groups first, then each status. `ALL` is the
+ * administrator's alone (the backend answers everybody else with a 403).
+ */
+export function orderItemFiltersFor(user: UserDto | undefined): readonly OrderItemChoice[] {
+  const admin = !!user && hasRole(user, 'ADMIN')
+  const groups: OrderItemChoice[] = admin ? [ALL_STATUSES, NOT_COMPLETED] : [NOT_COMPLETED]
+  return [...groups, ...ORDER_ITEM_STATUSES]
+}
+
+/** A choice as a person reads it in the dropdown. */
+export function orderItemFilterLabel(choice: OrderItemChoice): string {
+  if (choice === NOT_COMPLETED) return 'ALL BUT COMPLETED'
+  return choice.replaceAll('_', ' ')
+}
+
+/** What the list starts on: an administrator sees every line, everybody else the open ones. */
+export function defaultOrderItemFilter(user: UserDto | undefined): OrderItemChoice {
+  return user && hasRole(user, 'ADMIN') ? ALL_STATUSES : NOT_COMPLETED
+}
+
 export interface OrderItemFilter {
-  status?: OrderItemStatus | typeof ALL_STATUSES
+  status?: OrderItemChoice
+  /** Only the lines of this order. */
+  orderNo?: string
   page?: number
   size?: number
+  sort?: string
   order?: 'ASC' | 'DESC'
 }
 
 export interface PackableItemFilter {
   orderNo?: string
   page?: number
-  sort?: 'id' | 'quantity' | 'updatedAt'
+  size?: number
+  sort?: 'id' | 'quantity' | 'updatedAt' | 'fulfillmentStatus'
   order?: 'ASC' | 'DESC'
 }
 
@@ -88,6 +120,44 @@ export function wholeOrderLines(items: readonly OrderItemDto[]): PackingLine[] {
     const remaining = Number(item.remaining)
     return Number.isInteger(orderItemId) && remaining > 0 ? [{ orderItemId, qty: remaining }] : []
   })
+}
+
+/** Who may pack (`POST /packing/**`): the warehouse and the admin. The manager reads the list only. */
+export function mayPack(user: UserDto | null | undefined): boolean {
+  return !!user && (hasRole(user, 'ADMIN') || hasRole(user, 'WAREHOUSE'))
+}
+
+/** One block of the explanation under the pack buttons. */
+export interface PackingHelp {
+  /** The button it is about. */
+  title: string
+  text: string
+  /** Why the button cannot be pressed at the moment. */
+  problem?: string
+}
+
+/**
+ * What stands under the buttons: what each of them does and, while "Pack whole order" cannot be pressed, why not.
+ * Plain text - the page makes the headings.
+ */
+export function wholeOrderHint(problem: string | null): PackingHelp[] {
+  return [
+    {
+      title: 'Create Package',
+      text:
+        'Packs the quantities typed into the "pack qty" column, also of lines from different orders. The packed ' +
+        'items are not in a container yet - you find them under "Packages" and put them into one there. The ' +
+        'order number above only narrows the table.',
+    },
+    {
+      title: 'Pack whole order',
+      text:
+        'Packs everything that is left to pack of the order number entered above into one new package, which ' +
+        'you find under "Containers". The quantities typed into the table are not used. Lines not picked yet ' +
+        'are not included.',
+      ...(problem === null ? {} : { problem }),
+    },
+  ]
 }
 
 /** `POST /packing/{orderNo}`: one new package holding the given lines of that order; the answer says which. */

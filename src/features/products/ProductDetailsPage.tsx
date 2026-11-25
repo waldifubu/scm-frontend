@@ -1,11 +1,11 @@
-import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
-import { getRouteApi, Link, useNavigate } from '@tanstack/react-router'
+import { useQuery, type UseQueryResult } from '@tanstack/react-query'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { meQueryOptions } from '../auth/auth'
-import { deleteProduct, productQueryOptions, productBySkuQueryOptions } from './products'
-import { DeleteWithConfirm } from '../../shared/ui/DeleteWithConfirm'
+import { productQueryOptions, productBySkuQueryOptions } from './products'
 import { hasRole } from '../../shared/api/types'
 import { ProductStockCard } from '../stock/ProductStockCard'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/products/$articleNo')
 const skuRoute = getRouteApi('/authed/products/sku/$sku')
@@ -68,10 +68,6 @@ function ProductDetails({
   // Only these two roles may read stock; for anybody else the card would be a 403.
   const canSeeStock = user ? hasRole(user, 'WAREHOUSE') || hasRole(user, 'ADMIN') : false
   const sku = typeof product?.sku === 'string' ? product.sku : null
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  // `DELETE /products/{id}` takes the database id, which only admins and managers are sent.
-  const canDelete = user ? hasRole(user, 'ADMIN') || hasRole(user, 'MANAGER') : false
 
   const entries = product ? Object.entries(product) : []
   const lists = entries.filter(([, value]) => Array.isArray(value))
@@ -82,7 +78,7 @@ function ProductDetails({
       <div className="card shadow-sm mt-4">
         <div className="card-body">
           <h3 className="h5">{title}</h3>
-          {isPending && <p className="mb-0">Loading details…</p>}
+          {isPending && <LoadingBar label="Loading details…" className="" />}
           {error && <p className="mb-0 text-danger">{error.message}</p>}
           {product && (
             <>
@@ -94,23 +90,6 @@ function ProductDetails({
                   </div>
                 ))}
               </dl>
-              {canDelete && typeof product.id === 'number' && (
-                <div className="mt-4">
-                  <DeleteWithConfirm
-                    title={`Delete product ${cell(product.name)}?`}
-                    onDelete={() => deleteProduct(product.id as number)}
-                    onDeleted={async () => {
-                      await queryClient.invalidateQueries({ queryKey: ['products'] })
-                      await navigate({ to: '/products' })
-                    }}
-                  >
-                    <p className="mb-0">
-                      The product and its bill of materials are removed for good. Not possible while
-                      an order or stock still names it.
-                    </p>
-                  </DeleteWithConfirm>
-                </div>
-              )}
               {lists.map(([key, value]) => {
                 const rows = (value as unknown[]).filter(
                   (row): row is Record<string, unknown> => typeof row === 'object' && row !== null,

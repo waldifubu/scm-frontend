@@ -5,6 +5,7 @@ import { orderQueryOptions, type OrderDto } from './orders'
 import { OrderLinesTable } from './OrderLinesTable'
 import { cell } from '../../shared/lib/format'
 import { OrderStatusBadge } from './OrderStatusBadge'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 // Mermaid is large: the workflow diagram is fetched when the first order is opened, not with the page.
 const OrderWorkflow = lazy(() =>
@@ -32,7 +33,8 @@ export function NewOrderDetailsPage() {
 
   const entries = order ? Object.entries(order) : []
   const lists = entries.filter(([, value]) => Array.isArray(value))
-  const fields = entries.filter(([, value]) => !Array.isArray(value))
+  // The status is the badge beside the heading, not a field of this list.
+  const fields = entries.filter(([key, value]) => key !== 'status' && !Array.isArray(value))
 
   return (
     <>
@@ -43,8 +45,11 @@ export function NewOrderDetailsPage() {
       )}
       <div className="card shadow-sm mt-4">
         <div className="card-body">
-          <h3 className="h5">Order {orderNumber}</h3>
-          {isPending && <p className="mb-0">Loading details…</p>}
+          <h3 className="h5 d-flex align-items-center gap-2">
+            Order {orderNumber}
+            {order && <OrderStatusBadge status={order.status} />}
+          </h3>
+          {isPending && <LoadingBar label="Loading details…" className="" />}
           {error && <p className="mb-0 text-danger">{error.message}</p>}
           {order && (
             <>
@@ -52,9 +57,7 @@ export function NewOrderDetailsPage() {
                 {fields.map(([key, value]) => (
                   <div key={key} className="row">
                     <dt className="col-sm-3">{key}</dt>
-                    <dd className="col-sm-9">
-                      {key === 'status' ? <OrderStatusBadge status={value} /> : cell(value)}
-                    </dd>
+                    <dd className="col-sm-9">{cell(value)}</dd>
                   </div>
                 ))}
               </dl>

@@ -6,6 +6,7 @@ import { PageTitle } from '../../layout/PageTitle'
 import { Pager } from '../../shared/ui/Pager'
 import { cell } from '../../shared/lib/format'
 import { OrderStatusBadge } from './OrderStatusBadge'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const MESSAGE_SECONDS = 5
 
@@ -27,7 +28,7 @@ function NewOrdersTable({ page, onPage }: { page: number; onPage: (page: number)
     return () => clearTimeout(timer)
   }, [notice])
 
-  if (isPending) return <p className="p-3 mb-0">Loading…</p>
+  if (isPending) return <LoadingBar label="Loading…" />
   if (error) return <p className="p-3 mb-0 text-danger">{error.message}</p>
   const orders = data.content
   if (orders.length === 0) return <p className="p-3 mb-0 text-body-secondary">No orders.</p>

@@ -3,6 +3,7 @@ import { getRouteApi, Link } from '@tanstack/react-router'
 import { packageQueryOptions, type PackageDto } from './packages'
 import { LinkedValue } from '../../shared/ui/EntityLinkAnchor'
 import { cell } from '../../shared/lib/format'
+import { LoadingBar } from '../../shared/ui/LoadingBar'
 
 const route = getRouteApi('/authed/packages/$packageId')
 
@@ -83,7 +84,7 @@ export function PackageDetailsPage() {
     <div className="card shadow-sm mt-4">
       <div className="card-body">
         <h3 className="h5">Package {packageId}</h3>
-        {isPending && <p className="mb-0">Loading details…</p>}
+        {isPending && <LoadingBar label="Loading details…" className="" />}
         {error && <p className="mb-0 text-danger">{error.message}</p>}
         {pack && (
           <>

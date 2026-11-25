@@ -53,12 +53,15 @@ function luminance([red, green, blue]: [number, number, number]): number {
   return 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
 }
 
+/** White falls below a contrast of 3:1 on a ground lighter than this. */
+const isLightGround = (rgb: [number, number, number]) => luminance(rgb) > 0.3
+
 /**
  * How to paint a bar in this colour, or `null` for none - nothing set, or something that is no CSS
  * colour (the bar then keeps its default).
  *
- * Light text on a dark ground or dark text on a light one, whichever contrasts more: against white the
- * ratio is `1.05 / (L + 0.05)`, against black `(L + 0.05) / 0.05`.
+ * Light text unless the ground is clearly light. A mid-dark colour such as Bootstrap's blue
+ * (`rgb(13, 110, 253)`) is a hair closer to black by pure contrast ratio, yet reads far better with white text.
  */
 export function barStyle(color: string | null | undefined): BarStyle | null {
   const background = color?.trim()
@@ -69,10 +72,7 @@ export function barStyle(color: string | null | undefined): BarStyle | null {
 
   const rgb = onWhite(background)
   const style: BarStyle | null = rgb
-    ? {
-        background,
-        theme: 1.05 / (luminance(rgb) + 0.05) >= (luminance(rgb) + 0.05) / 0.05 ? 'dark' : 'light',
-      }
+    ? { background, theme: isLightGround(rgb) ? 'light' : 'dark' }
     : null
   cache.set(background, style)
   return style
@@ -81,16 +81,14 @@ export function barStyle(color: string | null | undefined): BarStyle | null {
 /**
  * The text colour for a badge painted in this colour, or `null` when the colour means nothing.
  *
- * Unlike `barStyle` this prefers white: a mid-dark colour such as Bootstrap's blue (`rgb(13, 110, 253)`) is a hair
- * closer to black by pure contrast ratio, yet reads better with white text. Black only where the ground is
- * clearly light (luminance above 0.3, which is where white falls below a contrast of 3:1).
+ * The same rule as for the bar: white, and black only where the ground is clearly light.
  */
 export function badgeTextColor(color: string | null | undefined): '#fff' | '#000' | null {
   const background = color?.trim()
   if (!background) return null
   const rgb = onWhite(background)
   if (!rgb) return null
-  return luminance(rgb) > 0.3 ? '#000' : '#fff'
+  return isLightGround(rgb) ? '#000' : '#fff'
 }
 
 /**

@@ -94,27 +94,33 @@ export function NewRuleToggle({
   label,
   formId,
   icon,
+  aside,
   children,
 }: {
   label: string
   formId: string
   icon: ReactNode
+  /** Further buttons in the same line, at its right end. */
+  aside?: ReactNode
   children: (close: () => void) => ReactNode
 }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="mt-4 mb-3">
-      <button
-        type="button"
-        className="btn btn-outline-success d-inline-flex align-items-center gap-2"
-        aria-expanded={open}
-        aria-controls={formId}
-        onClick={() => setOpen((current) => !current)}
-      >
-        {icon}
-        {label}
-        <Chevron up={open} />
-      </button>
+      <div className="d-flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="btn btn-outline-success d-inline-flex align-items-center gap-2"
+          aria-expanded={open}
+          aria-controls={formId}
+          onClick={() => setOpen((current) => !current)}
+        >
+          {icon}
+          {label}
+          <Chevron up={open} />
+        </button>
+        {aside && <div className="ms-auto">{aside}</div>}
+      </div>
       {open && (
         <div id={formId} className="card shadow-sm mt-3">
           <div className="card-body">{children(() => setOpen(false))}</div>
